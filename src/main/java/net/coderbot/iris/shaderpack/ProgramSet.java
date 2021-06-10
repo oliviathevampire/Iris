@@ -26,6 +26,9 @@ public class ProgramSet {
 	private final ProgramSource gbuffersTextured;
 	private final ProgramSource gbuffersTexturedLit;
 	private final ProgramSource gbuffersTerrain;
+	private final ProgramSource gbuffersTerrainSolid;
+	private final ProgramSource gbuffersTerrainCutoutMip;
+	private final ProgramSource gbuffersTerrainCutout;
 	private final ProgramSource gbuffersDamagedBlock;
 	private final ProgramSource gbuffersSkyBasic;
 	private final ProgramSource gbuffersSkyTextured;
@@ -37,12 +40,17 @@ public class ProgramSet {
 	private final ProgramSource gbuffersEntityEyes;
 	private final ProgramSource gbuffersBlock;
 	private final ProgramSource gbuffersHand;
+	private final ProgramSource gbuffersItem;
+	private final ProgramSource gbuffersArmorGlint;
+	private final ProgramSource gbuffersSpiderEyes;
 
+	private final ProgramSource deferredPre;
 	private final ProgramSource[] deferred;
 
 	private final ProgramSource gbuffersWater;
 	private final ProgramSource gbuffersHandWater;
 
+	private final ProgramSource compositePre;
 	private final ProgramSource[] composite;
 	private final ProgramSource compositeFinal;
 
@@ -63,6 +71,9 @@ public class ProgramSet {
 		this.gbuffersTextured = readProgramSource(root, inclusionRoot, "gbuffers_textured", this, shaderProperties);
 		this.gbuffersTexturedLit = readProgramSource(root, inclusionRoot, "gbuffers_textured_lit", this, shaderProperties);
 		this.gbuffersTerrain = readProgramSource(root, inclusionRoot, "gbuffers_terrain", this, shaderProperties);
+		this.gbuffersTerrainSolid = readProgramSource(root, inclusionRoot, "gbuffers_terrain_solid", this, shaderProperties);
+		this.gbuffersTerrainCutoutMip = readProgramSource(root, inclusionRoot, "gbuffers_terrain_cutout_mip", this, shaderProperties);
+		this.gbuffersTerrainCutout = readProgramSource(root, inclusionRoot, "gbuffers_terrain_cutout", this, shaderProperties);
 		this.gbuffersDamagedBlock = readProgramSource(root, inclusionRoot, "gbuffers_damagedblock", this, shaderProperties);
 		this.gbuffersSkyBasic = readProgramSource(root, inclusionRoot, "gbuffers_skybasic", this, shaderProperties);
 		this.gbuffersSkyTextured = readProgramSource(root, inclusionRoot, "gbuffers_skytextured", this, shaderProperties);
@@ -74,12 +85,17 @@ public class ProgramSet {
 		this.gbuffersEntityEyes = readProgramSource(root, inclusionRoot, "gbuffers_spidereyes", this, shaderProperties);
 		this.gbuffersBlock = readProgramSource(root, inclusionRoot, "gbuffers_block", this, shaderProperties);
 		this.gbuffersHand = readProgramSource(root, inclusionRoot, "gbuffers_hand", this, shaderProperties);
+		this.gbuffersItem = readProgramSource(root, inclusionRoot, "gbuffers_item", this, shaderProperties);
+		this.gbuffersArmorGlint = readProgramSource(root, inclusionRoot, "gbuffers_armor_glint", this, shaderProperties);
+		this.gbuffersSpiderEyes = readProgramSource(root, inclusionRoot, "gbuffers_spidereyes", this, shaderProperties);
 
+		this.deferredPre = readProgramSource(root, inclusionRoot, "deferred_pre", this, shaderProperties);
 		this.deferred = readProgramArray(root, inclusionRoot, "deferred", shaderProperties);
 
 		this.gbuffersWater = readProgramSource(root, inclusionRoot, "gbuffers_water", this, shaderProperties);
 		this.gbuffersHandWater = readProgramSource(root, inclusionRoot, "gbuffers_hand_water", this, shaderProperties);
 
+		this.compositePre = readProgramSource(root, inclusionRoot, "composite_pre", this, shaderProperties);
 		this.composite = readProgramArray(root, inclusionRoot, "composite", shaderProperties);
 		this.compositeFinal = readProgramSource(root, inclusionRoot, "final", this, shaderProperties);
 
@@ -118,6 +134,9 @@ public class ProgramSet {
 		this.gbuffersTextured = merge(base.gbuffersTextured, overrides.gbuffersTextured);
 		this.gbuffersTexturedLit = merge(base.gbuffersTexturedLit, overrides.gbuffersTexturedLit);
 		this.gbuffersTerrain = merge(base.gbuffersTerrain, overrides.gbuffersTerrain);
+		this.gbuffersTerrainSolid = merge(base.gbuffersTerrainSolid, overrides.gbuffersTerrainSolid);
+		this.gbuffersTerrainCutoutMip = merge(base.gbuffersTerrainCutoutMip, overrides.gbuffersTerrainCutoutMip);
+		this.gbuffersTerrainCutout = merge(base.gbuffersTerrainCutout, overrides.gbuffersTerrainCutout);
 		this.gbuffersDamagedBlock = merge(base.gbuffersDamagedBlock, overrides.gbuffersDamagedBlock);
 		this.gbuffersSkyBasic = merge(base.gbuffersSkyBasic, overrides.gbuffersSkyBasic);
 		this.gbuffersSkyTextured = merge(base.gbuffersSkyTextured, overrides.gbuffersSkyTextured);
@@ -129,12 +148,17 @@ public class ProgramSet {
 		this.gbuffersEntityEyes = merge(base.gbuffersEntityEyes, overrides.gbuffersEntityEyes);
 		this.gbuffersBlock = merge(base.gbuffersBlock, overrides.gbuffersBlock);
 		this.gbuffersHand = merge(base.gbuffersHand, overrides.gbuffersHand);
+		this.gbuffersItem = merge(base.gbuffersItem, overrides.gbuffersItem);
+		this.gbuffersArmorGlint = merge(base.gbuffersArmorGlint, overrides.gbuffersArmorGlint);
+		this.gbuffersSpiderEyes = merge(base.gbuffersSpiderEyes, overrides.gbuffersSpiderEyes);
 
+		this.deferredPre = merge(base.deferredPre, overrides.deferredPre);
 		this.deferred = merge(base.deferred, overrides.deferred);
 
 		this.gbuffersWater = merge(base.gbuffersWater, overrides.gbuffersWater);
 		this.gbuffersHandWater = merge(base.gbuffersHandWater, overrides.gbuffersHandWater);
 
+		this.compositePre = merge(base.compositePre, overrides.compositePre);
 		this.composite = merge(base.composite, overrides.composite);
 		this.compositeFinal = merge(base.compositeFinal, overrides.compositeFinal);
 
@@ -180,14 +204,19 @@ public class ProgramSet {
 
 		programs.addAll (Arrays.asList(
 				gbuffersBasic, gbuffersBeaconBeam, gbuffersTextured, gbuffersTexturedLit, gbuffersTerrain,
-				gbuffersDamagedBlock, gbuffersSkyBasic, gbuffersSkyTextured, gbuffersClouds, gbuffersWeather,
-				gbuffersEntities, gbuffersEntitiesGlowing, gbuffersGlint, gbuffersEntityEyes, gbuffersBlock,
-				gbuffersHand
+				gbuffersTerrainSolid, gbuffersTerrainCutoutMip, gbuffersTerrainCutoutMip, gbuffersDamagedBlock,
+				gbuffersSkyBasic, gbuffersSkyTextured, gbuffersClouds, gbuffersWeather, gbuffersEntities,
+				gbuffersEntitiesGlowing, gbuffersGlint, gbuffersEntityEyes, gbuffersBlock, gbuffersHand,
+				gbuffersItem, gbuffersArmorGlint, gbuffersSpiderEyes
 		));
 
+		programs.add(deferredPre);
 		programs.addAll(Arrays.asList(deferred));
+
 		programs.add(gbuffersWater);
 		programs.add(gbuffersHandWater);
+
+		programs.add(compositePre);
 		programs.addAll(Arrays.asList(composite));
 		programs.add(compositeFinal);
 
@@ -244,6 +273,18 @@ public class ProgramSet {
 		return gbuffersTerrain.requireValid();
 	}
 
+	public Optional<ProgramSource> getGbuffersTerrainSolid() {
+		return gbuffersTerrainSolid.requireValid();
+	}
+
+	public Optional<ProgramSource> getGbuffersTerrainCutoutMip() {
+		return gbuffersTerrainCutoutMip.requireValid();
+	}
+
+	public Optional<ProgramSource> getGbuffersTerrainCutout() {
+		return gbuffersTerrainCutout.requireValid();
+	}
+
 	public Optional<ProgramSource> getGbuffersDamagedBlock() {
 		return gbuffersDamagedBlock.requireValid();
 	}
@@ -288,6 +329,22 @@ public class ProgramSet {
 		return gbuffersHand.requireValid();
 	}
 
+	public Optional<ProgramSource> getGbuffersItem() {
+		return gbuffersItem.requireValid();
+	}
+
+	public Optional<ProgramSource> getGbuffersArmorGlint() {
+		return gbuffersArmorGlint.requireValid();
+	}
+
+	public Optional<ProgramSource> getGbuffersSpiderEyes() {
+		return gbuffersSpiderEyes.requireValid();
+	}
+
+	public Optional<ProgramSource> getDeferredPre() {
+		return deferredPre.requireValid();
+	}
+
 	public ProgramSource[] getDeferred() {
 		return deferred;
 	}
@@ -298,6 +355,10 @@ public class ProgramSet {
 
 	public Optional<ProgramSource> getGbuffersHandWater() {
 		return gbuffersHandWater.requireValid();
+	}
+
+	public Optional<ProgramSource> getCompositePre() {
+		return compositePre.requireValid();
 	}
 
 	public ProgramSource[] getComposite() {

@@ -83,7 +83,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 	private final GlFramebuffer clearMainBuffers;
 	private final GlFramebuffer baseline;
 
-	private final ShadowRenderer shadowMapRenderer;
+	private final ShadowMapRenderer shadowMapRenderer;
 	private final CompositeRenderer deferredRenderer;
 	private final CompositeRenderer compositeRenderer;
 	private final FinalPassRenderer finalPassRenderer;
@@ -170,7 +170,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 
 		Optional<ProgramSource> particleSource = first(programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured(), programSet.getGbuffersBasic());
 		Optional<ProgramSource> weatherSource = first(programSet.getGbuffersWeather(), particleSource);
-		Optional<ProgramSource> terrainSource = first(programSet.getGbuffersTerrain(), programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured(), programSet.getGbuffersBasic());
+		Optional<ProgramSource> terrainSource = first(programSet.getGbuffersTerrain(), programSet.getGbuffersTerrainCutout(), programSet.getGbuffersTerrainCutoutMip(), programSet.getGbuffersTerrainSolid(), programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured(), programSet.getGbuffersBasic());
 		Optional<ProgramSource> translucentSource = first(programSet.getGbuffersWater(), terrainSource);
 		Optional<ProgramSource> shadowSource = programSet.getShadow();
 
@@ -179,8 +179,8 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 
 		Optional<ProgramSource> damagedBlockSource = first(programSet.getGbuffersDamagedBlock(), terrainSource);
 
-		// TODO: Use EmptyShadowMapRenderer when shadows aren't needed.
-		this.shadowMapRenderer = new ShadowRenderer(this, programSet.getShadow().orElse(null), programSet.getPackDirectives());
+		this.shadowMapRenderer = programSet.getShadow().isPresent() ? new ShadowRenderer(this, programSet.getShadow().orElse(null), programSet.getPackDirectives()) :
+				new EmptyShadowMapRenderer(1);
 
 		this.baseline = renderTargets.createFramebufferWritingToMain(new int[] {0});
 
