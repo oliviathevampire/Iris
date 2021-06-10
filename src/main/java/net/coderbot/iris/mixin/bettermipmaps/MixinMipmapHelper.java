@@ -33,6 +33,9 @@ public class MixinMipmapHelper {
 		}
 	}
 
+	/**
+	 * @author coderbot
+	 */
 	@Overwrite
 	private static int blend(int one, int two, int three, int four, boolean checkAlpha) {
 		// First blend horizontally, then blend vertically.
