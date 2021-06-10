@@ -312,6 +312,7 @@ public class ShadowRenderer implements ShadowMapRenderer {
 		Matrix4f previousProjectionMatrix = RenderSystem.getProjectionMatrix();
 		RenderSystem.setProjectionMatrix(projectionMatrix);
 
+
 		// Disable backface culling
 		// This partially works around an issue where if the front face of a mountain isn't visible, it casts no
 		// shadow.
@@ -391,7 +392,6 @@ public class ShadowRenderer implements ShadowMapRenderer {
 				modelView.translate(pos.getX() - cameraX, pos.getY() - cameraY, pos.getZ() - cameraZ);
 				MinecraftClient.getInstance().getBlockEntityRenderDispatcher().render(entity, tickDelta, modelView, provider);
 				modelView.pop();
-
 				shadowBlockEntities++;
 			}
 		}

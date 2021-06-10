@@ -3,11 +3,7 @@ package net.coderbot.iris.shaderpack;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 
 import net.coderbot.iris.Iris;
 import org.apache.logging.log4j.Level;
@@ -23,6 +19,7 @@ public class ShaderPack {
 	private final IdMap idMap;
 	private final Map<String, Map<String, String>> langMap;
 	private final CustomTexture customNoiseTexture;
+	private boolean usingUnimplementedFeatures = false;
 
 	public ShaderPack(Path root) throws IOException {
 		ShaderProperties shaderProperties = loadProperties(root, "shaders.properties")
@@ -50,6 +47,17 @@ public class ShaderPack {
 				return null;
 			}
 		}).orElse(null);
+
+		// TODO: remove and actually detect for unimplemented features
+		markUsingUnimplementedFeatures();
+	}
+
+	private void markUsingUnimplementedFeatures() {
+		this.usingUnimplementedFeatures = true;
+	}
+
+	public boolean isUsingUnimplementedFeatures() {
+		return usingUnimplementedFeatures;
 	}
 
 	@Nullable

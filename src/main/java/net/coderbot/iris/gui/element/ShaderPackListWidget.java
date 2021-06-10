@@ -1,7 +1,6 @@
 package net.coderbot.iris.gui.element;
 
 import com.google.common.collect.ImmutableList;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.coderbot.iris.Iris;
 import net.coderbot.iris.gui.GuiUtil;
 import net.minecraft.client.MinecraftClient;
@@ -21,11 +20,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class ShaderPackListWidget extends IrisScreenEntryListWidget<ShaderPackListWidget.BaseEntry> {
-	public static final List<String> BUILTIN_PACKS = ImmutableList.of();
+	public static final List<String> BUILTIN_PACKS = ImmutableList.of("(internal)");
 
 	private static final Text PACK_LIST_LABEL = new TranslatableText("pack.iris.list.label").formatted(Formatting.ITALIC, Formatting.GRAY);
 	private static final Text SHADERS_DISABLED_LABEL = new TranslatableText("options.iris.shaders.disabled");
 	private static final Text SHADERS_ENABLED_LABEL = new TranslatableText("options.iris.shaders.enabled");
+
+	private int packCount = 0;
 
 	private final EnableShadersButtonEntry enableShadersButton = new EnableShadersButtonEntry(Iris.getIrisConfig().areShadersEnabled());
 
@@ -78,6 +79,8 @@ public class ShaderPackListWidget extends IrisScreenEntryListWidget<ShaderPackLi
 			Iris.logger.error("Error reading files while constructing selection UI");
 			Iris.logger.catching(e);
 		}
+
+		enableShadersButton.refresh(this);
 	}
 
 	public void addEntry(int index, String name) {
@@ -86,6 +89,7 @@ public class ShaderPackListWidget extends IrisScreenEntryListWidget<ShaderPackLi
 		if (Iris.getIrisConfig().getShaderPackName().equals(name)) {
 			this.setSelected(entry);
 		}
+		packCount++;
 
 		this.addEntry(entry);
 	}
@@ -141,7 +145,7 @@ public class ShaderPackListWidget extends IrisScreenEntryListWidget<ShaderPackLi
 			int color = 0xFFFFFF;
 			String name = packName;
 
-			boolean shadersEnabled = list.getEnableShadersButton().enabled;
+			boolean shadersEnabled = list.getEnableShadersButton().shadersEnabled;
 
 			if (textRenderer.getWidth(new LiteralText(name).formatted(Formatting.BOLD)) > this.list.getRowWidth() - 3) {
 				name = textRenderer.trimToWidth(name, this.list.getRowWidth() - 8) + "...";
@@ -166,7 +170,7 @@ public class ShaderPackListWidget extends IrisScreenEntryListWidget<ShaderPackLi
 
 		@Override
 		public boolean mouseClicked(double mouseX, double mouseY, int button) {
-			if (list.getEnableShadersButton().enabled && !this.isSelected() && button == 0) {
+			if (list.getEnableShadersButton().shadersEnabled && !this.isSelected() && button == 0) {
 				this.list.select(this.index);
 
 				return true;
@@ -196,33 +200,41 @@ public class ShaderPackListWidget extends IrisScreenEntryListWidget<ShaderPackLi
 	}
 
 	public static class EnableShadersButtonEntry extends BaseEntry {
-		public boolean enabled;
+		public boolean shadersEnabled;
+		private boolean buttonEnabled;
 
-		public EnableShadersButtonEntry(boolean enabled) {
-			this.enabled = enabled;
+		public EnableShadersButtonEntry(boolean shadersEnabled) {
+			this.shadersEnabled = shadersEnabled;
+		}
+
+		private void refresh(ShaderPackListWidget packs) {
+			this.buttonEnabled = packs.packCount > 0;
+			if (!buttonEnabled) {
+				shadersEnabled = false;
+			}
 		}
 
 		@Override
 		public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
 			GuiUtil.bindIrisWidgetsTexture();
 
-			GuiUtil.drawButton(matrices, x - 2, y - 3, entryWidth, 18, hovered, false);
+			GuiUtil.drawButton(matrices, x - 2, y - 3, entryWidth, 18, buttonEnabled && hovered, buttonEnabled);
 
-			Text label = this.enabled ? SHADERS_ENABLED_LABEL : SHADERS_DISABLED_LABEL;
+			Text label = this.shadersEnabled ? SHADERS_ENABLED_LABEL : SHADERS_DISABLED_LABEL;
 
-			drawCenteredText(matrices, MinecraftClient.getInstance().textRenderer, label, (x + entryWidth / 2) - 2, y + (entryHeight - 11) / 2, 0xFFFFFF);
+			drawCenteredText(matrices, MinecraftClient.getInstance().textRenderer, label, (x + entryWidth / 2) - 2, y + (entryHeight - 11) / 2, buttonEnabled ? 0xFFFFFF : 0xAEAEAE);
 		}
 
 		// Appears to be some accessibility thing
 		@Override
 		public Text method_37006() {
-			return new TranslatableText("narration.button", this.enabled ? SHADERS_ENABLED_LABEL : SHADERS_DISABLED_LABEL);
+			return new TranslatableText("narration.button", this.shadersEnabled ? SHADERS_ENABLED_LABEL : SHADERS_DISABLED_LABEL);
 		}
 
 		@Override
 		public boolean mouseClicked(double mouseX, double mouseY, int button) {
-			if (button == 0) {
-				this.enabled = !this.enabled;
+			if (buttonEnabled && button == 0) {
+				this.shadersEnabled = !this.shadersEnabled;
 				GuiUtil.playButtonClickSound();
 
 				return true;

@@ -82,6 +82,10 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 	private final Pass glint;
 	@Nullable
 	private final Pass eyes;
+	@Nullable
+	private final Pass hand;
+	@Nullable
+	private final Pass handWater;
 
 	private final GlFramebuffer clearAltBuffers;
 	private final GlFramebuffer clearMainBuffers;
@@ -95,7 +99,6 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 	private final NativeImageBackedSingleColorTexture specular;
 	private final AbstractTexture noise;
 	private final FrameUpdateNotifier updateNotifier;
-	private final CenterDepthSampler centerDepthSampler;
 
 	private final ImmutableSet<Integer> flippedBeforeTranslucent;
 	private final ImmutableSet<Integer> flippedAfterTranslucent;
@@ -149,7 +152,7 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 
 		BufferFlipper flipper = new BufferFlipper();
 
-		this.centerDepthSampler = new CenterDepthSampler(renderTargets, updateNotifier);
+		CenterDepthSampler centerDepthSampler = new CenterDepthSampler(renderTargets, updateNotifier);
 
 		flippedBeforeTranslucent = flipper.snapshot();
 
@@ -178,6 +181,8 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 		this.glowingEntities = programs.getGbuffersEntitiesGlowing().map(this::createPass).orElse(entities);
 		this.glint = programs.getGbuffersGlint().map(this::createPass).orElse(textured);
 		this.eyes = programs.getGbuffersEntityEyes().map(this::createPass).orElse(textured);
+		this.hand = programs.getGbuffersHand().map(this::createPass).orElse(entities);
+		this.handWater = programs.getGbuffersHandWater().map(this::createPass).orElse(entities);
 
 		int[] buffersToBeCleared = programs.getPackDirectives().getRenderTargetDirectives().getBuffersToBeCleared().toIntArray();
 
@@ -266,44 +271,28 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 	}
 
 	private Pass getPass(GbufferProgram program) {
-		switch (program) {
-			case TERRAIN:
-				return terrain;
-			case TRANSLUCENT_TERRAIN:
-				return translucent;
-			case DAMAGED_BLOCKS:
-				return damagedBlock;
-			case BASIC:
-				return basic;
-			case BEACON_BEAM:
-				return beaconBeam;
-			case ENTITIES:
-				return entities;
-			case BLOCK_ENTITIES:
-				return blockEntities;
-			case ENTITIES_GLOWING:
-				return glowingEntities;
-			case EYES:
-				return eyes;
-			case ARMOR_GLINT:
-				return glint;
-			case CLOUDS:
-				return clouds;
-			case SKY_BASIC:
-				return skyBasic;
-			case SKY_TEXTURED:
-				return skyTextured;
-			case TEXTURED_LIT:
-				return texturedLit;
-			case TEXTURED:
-				return textured;
-			case WEATHER:
-				return weather;
-			case HAND:
-			default:
-				// TODO
-				throw new UnsupportedOperationException("TODO: Unsupported gbuffer program: " + program);
-		}
+		return switch (program) {
+			case TERRAIN -> terrain;
+			case TRANSLUCENT_TERRAIN -> translucent;
+			case DAMAGED_BLOCKS -> damagedBlock;
+			case BASIC -> basic;
+			case BEACON_BEAM -> beaconBeam;
+			case ENTITIES -> entities;
+			case BLOCK_ENTITIES -> blockEntities;
+			case ENTITIES_GLOWING -> glowingEntities;
+			case EYES -> eyes;
+			case ARMOR_GLINT -> glint;
+			case CLOUDS -> clouds;
+			case SKY_BASIC -> skyBasic;
+			case SKY_TEXTURED -> skyTextured;
+			case TEXTURED_LIT -> texturedLit;
+			case TEXTURED -> textured;
+			case WEATHER -> weather;
+			case HAND -> hand;
+			default ->
+					// TODO
+					throw new UnsupportedOperationException("TODO: Unsupported gbuffer program: " + program);
+		};
 	}
 
 	private void useProgram(GbufferProgram program) {

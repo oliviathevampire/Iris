@@ -174,7 +174,6 @@ public class SodiumTerrainPipeline {
 		FrameUpdateNotifier updateNotifier;
 
 		WorldRenderingPipeline pipeline = Iris.getPipelineManager().getPipeline();
-
 		if (pipeline instanceof DeferredWorldRenderingPipeline) {
 			updateNotifier = ((DeferredWorldRenderingPipeline) pipeline).getUpdateNotifier();
 		} else if (pipeline instanceof CoreWorldRenderingPipeline) {
@@ -186,7 +185,6 @@ public class SodiumTerrainPipeline {
 			// TODO: Proper interface
 			throw new IllegalStateException("Unsupported pipeline: " + pipeline);
 		}
-
 		CommonUniforms.addCommonUniforms(uniforms, programSet.getPack().getIdMap(), programSet.getPackDirectives(), updateNotifier);
 		SamplerUniforms.addWorldSamplerUniforms(uniforms);
 		SamplerUniforms.addDepthSamplerUniforms(uniforms);
