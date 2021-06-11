@@ -29,6 +29,7 @@ import net.coderbot.iris.shadows.ShadowMapRenderer;
 import net.coderbot.iris.uniforms.CommonUniforms;
 import net.coderbot.iris.uniforms.FrameUpdateNotifier;
 import net.coderbot.iris.uniforms.SamplerUniforms;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.texture.AbstractTexture;
 import org.jetbrains.annotations.Nullable;
@@ -190,7 +191,7 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 		this.glowingEntities = programs.getGbuffersEntitiesGlowing().map(this::createPass).orElse(entities);
 		this.glint = programs.getGbuffersGlint().map(this::createPass).orElse(textured);
 		this.eyes = programs.getGbuffersEntityEyes().map(this::createPass).orElse(textured);
-		this.hand = programs.getGbuffersHand().map(this::createPass).orElse(entities);
+		this.hand = programs.getGbuffersHand().map(this::createPass).orElse(texturedLit);
 		this.item = programs.getGbuffersItem().map(this::createPass).orElse(texturedLit);
 
 		int[] buffersToBeCleared = programs.getPackDirectives().getRenderTargetDirectives().getBuffersToBeCleared().toIntArray();

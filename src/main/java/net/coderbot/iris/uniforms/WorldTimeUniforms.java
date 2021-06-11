@@ -7,6 +7,7 @@ import java.util.Objects;
 import net.coderbot.iris.gl.uniform.UniformHolder;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.SkyProperties;
 import net.minecraft.client.world.ClientWorld;
 
 public final class WorldTimeUniforms {

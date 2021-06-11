@@ -39,17 +39,12 @@ public class BiomeParameters {
 				.uniform1f(PER_TICK, "temperature", playerF(player ->
 						player.world.getBiome(player.getBlockPos()).getTemperature(player.getBlockPos())))
 
-
 				.uniform1i(ONCE, "PPT_NONE", () -> 0)
 				.uniform1i(ONCE, "PPT_RAIN", () -> 1)
 				.uniform1i(ONCE, "PPT_SNOW", () -> 2);
 
-
-
-
 		addBiomes(uniforms);
 		addCategories(uniforms);
-
 	}
 
 	public static void addBiomes(UniformHolder uniforms) {

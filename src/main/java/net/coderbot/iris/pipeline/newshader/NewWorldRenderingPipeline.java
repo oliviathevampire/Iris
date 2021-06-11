@@ -74,6 +74,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 	private final Shader weather;
 	private final Shader crumbling;
 	private final Shader text;
+	private final Shader hand;
 
 	private final Shader terrainTranslucent;
 	private WorldRenderingPhase phase = WorldRenderingPhase.NOT_RENDERING_WORLD;
@@ -176,6 +177,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 		Optional<ProgramSource> terrainSolidSource = first(programSet.getGbuffersTerrainSolid(), programSet.getGbuffersTerrain(), programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured());
 		Optional<ProgramSource> terrainCutoutMippedSource = first(programSet.getGbuffersTerrainCutoutMip(), programSet.getGbuffersTerrain(), programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured());
 		Optional<ProgramSource> translucentSource = first(programSet.getGbuffersWater(), terrainSource);
+		Optional<ProgramSource> handSource = first(programSet.getGbuffersHand(), programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured(), programSet.getGbuffersBasic());
 		Optional<ProgramSource> shadowSource = programSet.getShadow();
 
 		Optional<ProgramSource> entitiesSource = first(programSet.getGbuffersEntities(), programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured(), programSet.getGbuffersBasic());
@@ -211,6 +213,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 			this.weather = createShader("gbuffers_weather", weatherSource, terrainCutoutAlpha, VertexFormats.POSITION_TEXTURE_COLOR_LIGHT, true);
 			this.crumbling = createShader("gbuffers_damagedblock", damagedBlockSource, nonZeroAlpha, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL, true);
 			this.text = createShader("gbuffers_entities_text", entitiesSource, nonZeroAlpha, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT, true);
+			this.hand = createShader("gbuffers_hand", handSource, nonZeroAlpha, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT, true);
 
 			// TODO: Shadow programs should have access to different samplers.
 			this.shadowTerrainCutout = createShadowShader("shadow_terrain_cutout", shadowSource, terrainCutoutAlpha, IrisVertexFormats.TERRAIN, true);
