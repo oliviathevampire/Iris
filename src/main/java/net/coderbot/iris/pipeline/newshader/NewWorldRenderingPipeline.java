@@ -59,6 +59,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 	private final Shader skyTextured;
 	private final Shader shadowTerrainCutout;
 
+	private final Shader terrain;
 	private final Shader terrainSolid;
 	private final Shader terrainCutout;
 	private final Shader terrainCutoutMipped;
@@ -83,7 +84,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 	private final GlFramebuffer clearMainBuffers;
 	private final GlFramebuffer baseline;
 
-	private final ShadowMapRenderer shadowMapRenderer;
+	private final ShadowRenderer shadowMapRenderer;
 	private final CompositeRenderer deferredRenderer;
 	private final CompositeRenderer compositeRenderer;
 	private final FinalPassRenderer finalPassRenderer;
@@ -170,7 +171,10 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 
 		Optional<ProgramSource> particleSource = first(programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured(), programSet.getGbuffersBasic());
 		Optional<ProgramSource> weatherSource = first(programSet.getGbuffersWeather(), particleSource);
-		Optional<ProgramSource> terrainSource = first(programSet.getGbuffersTerrain(), programSet.getGbuffersTerrainCutout(), programSet.getGbuffersTerrainCutoutMip(), programSet.getGbuffersTerrainSolid(), programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured(), programSet.getGbuffersBasic());
+		Optional<ProgramSource> terrainSource = first(programSet.getGbuffersTerrain(), programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured(), programSet.getGbuffersBasic());
+		Optional<ProgramSource> terrainCutoutSource = first(programSet.getGbuffersTerrainCutout(), programSet.getGbuffersTerrain(), programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured());
+		Optional<ProgramSource> terrainSolidSource = first(programSet.getGbuffersTerrainSolid(), programSet.getGbuffersTerrain(), programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured());
+		Optional<ProgramSource> terrainCutoutMippedSource = first(programSet.getGbuffersTerrainCutoutMip(), programSet.getGbuffersTerrain(), programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured());
 		Optional<ProgramSource> translucentSource = first(programSet.getGbuffersWater(), terrainSource);
 		Optional<ProgramSource> shadowSource = programSet.getShadow();
 
@@ -179,8 +183,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 
 		Optional<ProgramSource> damagedBlockSource = first(programSet.getGbuffersDamagedBlock(), terrainSource);
 
-		this.shadowMapRenderer = programSet.getShadow().isPresent() ? new ShadowRenderer(this, programSet.getShadow().orElse(null), programSet.getPackDirectives()) :
-				new EmptyShadowMapRenderer(1);
+		this.shadowMapRenderer = new ShadowRenderer(this, programSet.getShadow().orElse(null), programSet.getPackDirectives());
 
 		this.baseline = renderTargets.createFramebufferWritingToMain(new int[] {0});
 
@@ -195,9 +198,10 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 			this.skyBasic = createShader("gbuffers_sky_basic", skyBasicSource, AlphaTest.ALWAYS, VertexFormats.POSITION, false);
 			this.skyBasicColor = createShader("gbuffers_sky_basic_color", skyBasicSource, AlphaTest.ALWAYS, VertexFormats.POSITION_COLOR, true);
 			this.skyTextured = createShader("gbuffers_sky_textured", skyTexturedSource, AlphaTest.ALWAYS, VertexFormats.POSITION_TEXTURE, false);
-			this.terrainSolid = createShader("gbuffers_terrain_solid", terrainSource, AlphaTest.ALWAYS, IrisVertexFormats.TERRAIN, true);
-			this.terrainCutout = createShader("gbuffers_terrain_cutout", terrainSource, terrainCutoutAlpha, IrisVertexFormats.TERRAIN, true);
-			this.terrainCutoutMipped = createShader("gbuffers_terrain_cutout_mipped", terrainSource, terrainCutoutAlpha, IrisVertexFormats.TERRAIN, true);
+			this.terrain = createShader("gbuffers_terrain", terrainSource, AlphaTest.ALWAYS, IrisVertexFormats.TERRAIN, true);
+			this.terrainSolid = createShader("gbuffers_terrain_solid", terrainSolidSource, AlphaTest.ALWAYS, IrisVertexFormats.TERRAIN, true);
+			this.terrainCutout = createShader("gbuffers_terrain_cutout", terrainCutoutSource, terrainCutoutAlpha, IrisVertexFormats.TERRAIN, true);
+			this.terrainCutoutMipped = createShader("gbuffers_terrain_cutout_mipped", terrainCutoutMippedSource, terrainCutoutAlpha, IrisVertexFormats.TERRAIN, true);
 			this.entitiesSolid = createShader("gbuffers_entities_solid", entitiesSource, AlphaTest.ALWAYS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL, true);
 			this.entitiesCutout = createShader("gbuffers_entities_cutout", entitiesSource, terrainCutoutAlpha, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL, true);
 			this.entitiesEyes = createShader("gbuffers_spidereyes", entityEyesSource, nonZeroAlpha, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL, true);

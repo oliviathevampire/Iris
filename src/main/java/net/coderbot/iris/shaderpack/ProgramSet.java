@@ -41,14 +41,11 @@ public class ProgramSet {
 	private final ProgramSource gbuffersBlock;
 	private final ProgramSource gbuffersHand;
 	private final ProgramSource gbuffersItem;
-	private final ProgramSource gbuffersArmorGlint;
-	private final ProgramSource gbuffersSpiderEyes;
 
 	private final ProgramSource deferredPre;
 	private final ProgramSource[] deferred;
 
 	private final ProgramSource gbuffersWater;
-	private final ProgramSource gbuffersHandWater;
 
 	private final ProgramSource compositePre;
 	private final ProgramSource[] composite;
@@ -86,14 +83,11 @@ public class ProgramSet {
 		this.gbuffersBlock = readProgramSource(root, inclusionRoot, "gbuffers_block", this, shaderProperties);
 		this.gbuffersHand = readProgramSource(root, inclusionRoot, "gbuffers_hand", this, shaderProperties);
 		this.gbuffersItem = readProgramSource(root, inclusionRoot, "gbuffers_item", this, shaderProperties);
-		this.gbuffersArmorGlint = readProgramSource(root, inclusionRoot, "gbuffers_armor_glint", this, shaderProperties);
-		this.gbuffersSpiderEyes = readProgramSource(root, inclusionRoot, "gbuffers_spidereyes", this, shaderProperties);
 
 		this.deferredPre = readProgramSource(root, inclusionRoot, "deferred_pre", this, shaderProperties);
 		this.deferred = readProgramArray(root, inclusionRoot, "deferred", shaderProperties);
 
 		this.gbuffersWater = readProgramSource(root, inclusionRoot, "gbuffers_water", this, shaderProperties);
-		this.gbuffersHandWater = readProgramSource(root, inclusionRoot, "gbuffers_hand_water", this, shaderProperties);
 
 		this.compositePre = readProgramSource(root, inclusionRoot, "composite_pre", this, shaderProperties);
 		this.composite = readProgramArray(root, inclusionRoot, "composite", shaderProperties);
@@ -149,14 +143,11 @@ public class ProgramSet {
 		this.gbuffersBlock = merge(base.gbuffersBlock, overrides.gbuffersBlock);
 		this.gbuffersHand = merge(base.gbuffersHand, overrides.gbuffersHand);
 		this.gbuffersItem = merge(base.gbuffersItem, overrides.gbuffersItem);
-		this.gbuffersArmorGlint = merge(base.gbuffersArmorGlint, overrides.gbuffersArmorGlint);
-		this.gbuffersSpiderEyes = merge(base.gbuffersSpiderEyes, overrides.gbuffersSpiderEyes);
 
 		this.deferredPre = merge(base.deferredPre, overrides.deferredPre);
 		this.deferred = merge(base.deferred, overrides.deferred);
 
 		this.gbuffersWater = merge(base.gbuffersWater, overrides.gbuffersWater);
-		this.gbuffersHandWater = merge(base.gbuffersHandWater, overrides.gbuffersHandWater);
 
 		this.compositePre = merge(base.compositePre, overrides.compositePre);
 		this.composite = merge(base.composite, overrides.composite);
@@ -207,14 +198,13 @@ public class ProgramSet {
 				gbuffersTerrainSolid, gbuffersTerrainCutoutMip, gbuffersTerrainCutoutMip, gbuffersDamagedBlock,
 				gbuffersSkyBasic, gbuffersSkyTextured, gbuffersClouds, gbuffersWeather, gbuffersEntities,
 				gbuffersEntitiesGlowing, gbuffersGlint, gbuffersEntityEyes, gbuffersBlock, gbuffersHand,
-				gbuffersItem, gbuffersArmorGlint, gbuffersSpiderEyes
+				gbuffersItem
 		));
 
 		programs.add(deferredPre);
 		programs.addAll(Arrays.asList(deferred));
 
 		programs.add(gbuffersWater);
-		programs.add(gbuffersHandWater);
 
 		programs.add(compositePre);
 		programs.addAll(Arrays.asList(composite));
@@ -333,14 +323,6 @@ public class ProgramSet {
 		return gbuffersItem.requireValid();
 	}
 
-	public Optional<ProgramSource> getGbuffersArmorGlint() {
-		return gbuffersArmorGlint.requireValid();
-	}
-
-	public Optional<ProgramSource> getGbuffersSpiderEyes() {
-		return gbuffersSpiderEyes.requireValid();
-	}
-
 	public Optional<ProgramSource> getDeferredPre() {
 		return deferredPre.requireValid();
 	}
@@ -351,10 +333,6 @@ public class ProgramSet {
 
 	public Optional<ProgramSource> getGbuffersWater() {
 		return gbuffersWater.requireValid();
-	}
-
-	public Optional<ProgramSource> getGbuffersHandWater() {
-		return gbuffersHandWater.requireValid();
 	}
 
 	public Optional<ProgramSource> getCompositePre() {

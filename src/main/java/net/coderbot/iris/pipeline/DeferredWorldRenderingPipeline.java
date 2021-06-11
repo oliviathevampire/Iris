@@ -65,6 +65,12 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 	@Nullable
 	private final Pass terrain;
 	@Nullable
+	private final Pass terrainCutoutMipped;
+	@Nullable
+	private final Pass terrainCutout;
+	@Nullable
+	private final Pass terrainSolid;
+	@Nullable
 	private final Pass translucent;
 	@Nullable
 	private final Pass damagedBlock;
@@ -85,7 +91,7 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 	@Nullable
 	private final Pass hand;
 	@Nullable
-	private final Pass handWater;
+	private final Pass item;
 
 	private final GlFramebuffer clearAltBuffers;
 	private final GlFramebuffer clearMainBuffers;
@@ -172,6 +178,9 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 		this.skyTextured = programs.getGbuffersSkyTextured().map(this::createPass).orElse(textured);
 		this.clouds = programs.getGbuffersClouds().map(this::createPass).orElse(textured);
 		this.terrain = programs.getGbuffersTerrain().map(this::createPass).orElse(texturedLit);
+		this.terrainCutout = programs.getGbuffersTerrainCutout().map(this::createPass).orElse(terrain);
+		this.terrainCutoutMipped = programs.getGbuffersTerrainCutoutMip().map(this::createPass).orElse(terrain);
+		this.terrainSolid = programs.getGbuffersTerrainSolid().map(this::createPass).orElse(terrain);
 		this.translucent = programs.getGbuffersWater().map(this::createPass).orElse(terrain);
 		this.damagedBlock = programs.getGbuffersDamagedBlock().map(this::createPass).orElse(terrain);
 		this.weather = programs.getGbuffersWeather().map(this::createPass).orElse(texturedLit);
@@ -182,7 +191,7 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 		this.glint = programs.getGbuffersGlint().map(this::createPass).orElse(textured);
 		this.eyes = programs.getGbuffersEntityEyes().map(this::createPass).orElse(textured);
 		this.hand = programs.getGbuffersHand().map(this::createPass).orElse(entities);
-		this.handWater = programs.getGbuffersHandWater().map(this::createPass).orElse(entities);
+		this.item = programs.getGbuffersItem().map(this::createPass).orElse(texturedLit);
 
 		int[] buffersToBeCleared = programs.getPackDirectives().getRenderTargetDirectives().getBuffersToBeCleared().toIntArray();
 
@@ -273,6 +282,9 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 	private Pass getPass(GbufferProgram program) {
 		return switch (program) {
 			case TERRAIN -> terrain;
+			case TERRAIN_CUTOUT -> terrainCutout;
+			case TERRAIN_CUTOUT_MIPPED -> terrainCutoutMipped;
+			case TERRAIN_SOLID -> terrainSolid;
 			case TRANSLUCENT_TERRAIN -> translucent;
 			case DAMAGED_BLOCKS -> damagedBlock;
 			case BASIC -> basic;
@@ -289,6 +301,7 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 			case TEXTURED -> textured;
 			case WEATHER -> weather;
 			case HAND -> hand;
+			case ITEM -> item;
 			default ->
 					// TODO
 					throw new UnsupportedOperationException("TODO: Unsupported gbuffer program: " + program);
@@ -321,6 +334,18 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 		if (program == GbufferProgram.TERRAIN) {
 			if (terrain != null) {
 				setupAttributes(terrain);
+			}
+		} if (program == GbufferProgram.TERRAIN_SOLID) {
+			if (terrainSolid != null) {
+				setupAttributes(terrainSolid);
+			}
+		} if (program == GbufferProgram.TERRAIN_CUTOUT) {
+			if (terrainCutout != null) {
+				setupAttributes(terrainCutout);
+			}
+		} if (program == GbufferProgram.TERRAIN_CUTOUT_MIPPED) {
+			if (terrainCutoutMipped != null) {
+				setupAttributes(terrainCutoutMipped);
 			}
 		} else if (program == GbufferProgram.TRANSLUCENT_TERRAIN) {
 			if (translucent != null) {

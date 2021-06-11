@@ -29,11 +29,12 @@ public final class IdMapUniforms {
 		Map<Identifier, Integer> entityIdMap = idMap.getEntityIdMap();
 
 		uniforms
-			.uniform1i(UniformUpdateFrequency.PER_FRAME, "heldItemId",
-				new HeldItemSupplier(Hand.MAIN_HAND, idMap.getItemIdMap()))
-			.uniform1i(UniformUpdateFrequency.PER_FRAME, "heldItemId2",
-				new HeldItemSupplier(Hand.OFF_HAND, idMap.getItemIdMap()))
+			.uniform1i(UniformUpdateFrequency.PER_FRAME, "heldItemId", new HeldItemSupplier(Hand.MAIN_HAND,
+					idMap.getItemIdMap()))
+			.uniform1i(UniformUpdateFrequency.PER_FRAME, "heldItemId2", new HeldItemSupplier(Hand.OFF_HAND,
+					idMap.getItemIdMap()))
 			.uniform1i(UniformUpdateFrequency.PER_FRAME, "blockEntityId", () -> getBlockEntityId(blockIdMap))
+			.uniform1i(UniformUpdateFrequency.PER_FRAME, "entityColor", () -> getEntityColor(entityIdMap))
 			.uniform1i(UniformUpdateFrequency.PER_FRAME, "entityId", () -> getEntityId(entityIdMap));
 
 	}
@@ -42,22 +43,13 @@ public final class IdMapUniforms {
 	 * Provides the currently held item in the given hand as a uniform. Uses the item.properties ID map to map the item
 	 * to an integer.
 	 */
-	private static class HeldItemSupplier implements IntSupplier {
-		private final Hand hand;
-		private final Map<Identifier, Integer> itemIdMap;
-
-		HeldItemSupplier(Hand hand, Map<Identifier, Integer> itemIdMap) {
-			this.hand = hand;
-			this.itemIdMap = itemIdMap;
-		}
-
+	private record HeldItemSupplier(Hand hand, Map<Identifier, Integer> itemIdMap) implements IntSupplier {
 		@Override
 		public int getAsInt() {
 			if (MinecraftClient.getInstance().player == null) {
 				// Not valid when the player doesn't exist
 				return -1;
 			}
-
 			ItemStack heldStack = MinecraftClient.getInstance().player.getStackInHand(hand);
 			Identifier heldItemId = Registry.ITEM.getId(heldStack.getItem());
 
@@ -73,21 +65,16 @@ public final class IdMapUniforms {
 	 */
 	private static int getBlockEntityId(Map<BlockState, Integer> blockIdMap) {
 		BlockEntity entity = CapturedRenderingState.INSTANCE.getCurrentRenderedBlockEntity();
-
 		if (entity == null || !entity.hasWorld()) {
 			return -1;
 		}
-
 		ClientWorld world = Objects.requireNonNull(MinecraftClient.getInstance().world);
-
 		BlockState blockAt = world.getBlockState(entity.getPos());
-
 		if (!entity.getType().supports(blockAt)) {
 			// Somehow the block here isn't compatible with the block entity at this location.
 			// I'm not sure how this could ever reasonably happen.
 			return -1;
 		}
-
 		return blockIdMap.getOrDefault(blockAt, -1);
 	}
 
@@ -98,14 +85,26 @@ public final class IdMapUniforms {
 	 */
 	private static int getEntityId(Map<Identifier, Integer> entityIdMap) {
 		Entity entity = CapturedRenderingState.INSTANCE.getCurrentRenderedEntity();
-
 		if (entity == null) {
 			// Not valid if no entity is being rendered
 			return -1;
 		}
-
 		Identifier entityId = Registry.ENTITY_TYPE.getId(entity.getType());
+		return entityIdMap.getOrDefault(entityId, -1);
+	}
 
+	/**
+	 * returns the entity id based on the parsed entity id from entity.properties
+	 *
+	 * @return the id the entity. Defaults to -1 if not specified
+	 */
+	private static int getEntityColor(Map<Identifier, Integer> entityIdMap) {
+		Entity entity = CapturedRenderingState.INSTANCE.getCurrentRenderedEntity();
+		if (entity == null) {
+			// Not valid if no entity is being rendered
+			return -1;
+		}
+		Identifier entityId = Registry.ENTITY_TYPE.getId(entity.getType());
 		return entityIdMap.getOrDefault(entityId, -1);
 	}
 }

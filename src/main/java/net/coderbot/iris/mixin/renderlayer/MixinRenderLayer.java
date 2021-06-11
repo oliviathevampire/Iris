@@ -78,9 +78,9 @@ public class MixinRenderLayer {
 	}*/
 
 	static {
-		SOLID = wrap("iris:terrain_solid", SOLID, GbufferProgram.TERRAIN);
-		CUTOUT_MIPPED = wrap("iris:terrain_cutout_mipped", CUTOUT_MIPPED, GbufferProgram.TERRAIN);
-		CUTOUT = wrap("iris:terrain_cutout", CUTOUT, GbufferProgram.TERRAIN);
+		SOLID = wrap("iris:terrain_solid", SOLID, GbufferProgram.TERRAIN_SOLID);
+		CUTOUT_MIPPED = wrap("iris:terrain_cutout_mipped", CUTOUT_MIPPED, GbufferProgram.TERRAIN_CUTOUT_MIPPED);
+		CUTOUT = wrap("iris:terrain_cutout", CUTOUT, GbufferProgram.TERRAIN_CUTOUT);
 		TRANSLUCENT = wrap("iris:translucent", TRANSLUCENT, GbufferProgram.TRANSLUCENT_TERRAIN);
 		TRIPWIRE = wrap("iris:tripwire", TRIPWIRE, GbufferProgram.TRANSLUCENT_TERRAIN);
 		// TODO: figure out how to assign to RenderLayer.LINES

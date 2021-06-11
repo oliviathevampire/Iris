@@ -12,6 +12,7 @@ import net.coderbot.iris.uniforms.transforms.SmoothedVec2f;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.render.BackgroundRenderer;
 import net.minecraft.client.render.CameraSubmersionType;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.entity.Entity;
@@ -48,14 +49,16 @@ public final class CommonUniforms {
 		IdMapUniforms.addIdMapUniforms(uniforms, idMap);
 		MatrixUniforms.addMatrixUniforms(uniforms, directives);
 		SamplerUniforms.addCommonSamplerUniforms(uniforms);
+		BiomeParameters.biomeParameters(uniforms);
 		HardcodedCustomUniforms.addHardcodedCustomUniforms(uniforms, updateNotifier);
+		WeatherUniforms.addWeatherUniforms(uniforms, updateNotifier);
 
 		CommonUniforms.generalCommonUniforms(uniforms, updateNotifier);
 	}
 
-	public static void generalCommonUniforms(UniformHolder uniforms, FrameUpdateNotifier updateNotifier){
+	public static void generalCommonUniforms(UniformHolder uniforms, FrameUpdateNotifier updateNotifier) {
 		uniforms
-			.uniform1b(PER_FRAME, "hideGUI", () -> client.options.hudHidden)
+			.uniform1i(PER_FRAME, "hideGUI", () -> client.options.hudHidden ? 1 : 0)
 			.uniform1f(PER_FRAME, "eyeAltitude", () -> Objects.requireNonNull(client.getCameraEntity()).getEyeY())
 			.uniform1i(PER_FRAME, "isEyeInWater", CommonUniforms::isEyeInWater)
 			.uniform1f(PER_FRAME, "blindness", CommonUniforms::getBlindness)
@@ -67,7 +70,7 @@ public final class CommonUniforms {
 			.uniform2i(PER_FRAME, "eyeBrightness", CommonUniforms::getEyeBrightness)
 			.uniform2i(PER_FRAME, "eyeBrightnessSmooth", new SmoothedVec2f(10.0f, CommonUniforms::getEyeBrightness, updateNotifier))
 			.uniform1f(PER_TICK, "rainStrength", CommonUniforms::getRainStrength)
-		  .uniform1f(PER_TICK, "wetness", new SmoothedFloat(600f, CommonUniforms::getRainStrength, updateNotifier))
+		  	.uniform1f(PER_TICK, "wetness", new SmoothedFloat(600f, CommonUniforms::getRainStrength, updateNotifier))
 			.uniform3d(PER_FRAME, "skyColor", CommonUniforms::getSkyColor)
 			.uniform3d(PER_FRAME, "fogColor", CapturedRenderingState.INSTANCE::getFogColor);
 	}
@@ -161,15 +164,12 @@ public final class CommonUniforms {
 		// after all, disabling the overlay results in the intended effect of it not really looking like you're
 		// underwater on most shaderpacks. For now, I will leave this as-is, but it is something to keep in mind.
 		CameraSubmersionType submersionType = client.gameRenderer.getCamera().getSubmersionType();
-
-		if (submersionType == CameraSubmersionType.WATER) {
-			return 1;
-		} else if (submersionType == CameraSubmersionType.LAVA) {
-			return 2;
-		} else {
-			// TODO: handle CameraSubmersionType.POWDERED_SNOW
-			return 0;
-		}
+		return switch(submersionType) {
+			case WATER -> 1;
+			case LAVA -> 2;
+			case POWDER_SNOW -> 3;
+			case NONE -> 0;
+		};
 	}
 
 	private static class HeldItemLightingSupplier implements IntSupplier {

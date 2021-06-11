@@ -2,6 +2,7 @@ package net.coderbot.iris.uniforms;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.coderbot.iris.gl.uniform.UniformHolder;
+import net.minecraft.client.render.entity.SpiderEntityRenderer;
 import net.minecraft.util.math.Vec3f;
 import net.minecraft.util.math.Vector4f;
 
@@ -25,6 +26,9 @@ public class FogUniforms117 {
 				})
 				.uniform1f(PER_FRAME, "iris_FogStart", RenderSystem::getShaderFogStart)
 				.uniform1f(PER_FRAME, "iris_FogEnd", RenderSystem::getShaderFogEnd)
-				.uniform1f(PER_FRAME, "iris_FogDensity", () -> 0); // TODO: Implement FogDensity and fogMode
+				.uniform1f(PER_FRAME, "iris_FogColorR", () -> RenderSystem.getShaderFogColor()[0])
+				.uniform1f(PER_FRAME, "iris_FogColorG", () -> RenderSystem.getShaderFogColor()[1])
+				.uniform1f(PER_FRAME, "iris_FogColorB", () -> RenderSystem.getShaderFogColor()[2])
+				.uniform1f(PER_FRAME, "iris_FogColorA", () -> RenderSystem.getShaderFogColor()[3]); // TODO: Implement FogDensity and fogMode
 	}
 }
