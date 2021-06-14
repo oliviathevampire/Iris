@@ -1,8 +1,5 @@
 package net.coderbot.iris.gl.program;
 
-import java.nio.IntBuffer;
-import java.util.*;
-
 import com.google.common.collect.ImmutableList;
 import net.coderbot.iris.Iris;
 import net.coderbot.iris.gl.uniform.LocationalUniformHolder;
@@ -10,10 +7,15 @@ import net.coderbot.iris.gl.uniform.Uniform;
 import net.coderbot.iris.gl.uniform.UniformType;
 import net.coderbot.iris.gl.uniform.UniformUpdateFrequency;
 import net.coderbot.iris.uniforms.SystemTimeUniforms;
+import net.minecraft.client.MinecraftClient;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL20C;
 
-import net.minecraft.client.MinecraftClient;
+import java.nio.IntBuffer;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.OptionalInt;
 
 public class ProgramUniforms {
 	private final ImmutableList<Uniform> perTick;

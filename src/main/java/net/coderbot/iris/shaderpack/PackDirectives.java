@@ -4,7 +4,9 @@ import java.util.Set;
 
 public class PackDirectives {
 	private int noiseTextureResolution;
+	private int shadowMapResolution;
 	private float sunPathRotation;
+	private float shadowDistance;
 	private boolean areCloudsEnabled;
 
 	private final PackRenderTargetDirectives renderTargetDirectives;
@@ -13,6 +15,8 @@ public class PackDirectives {
 	private PackDirectives(Set<Integer> supportedRenderTargets) {
 		noiseTextureResolution = 256;
 		sunPathRotation = 0.0F;
+		shadowMapResolution = 1024;
+		shadowDistance = 190F;
 		renderTargetDirectives = new PackRenderTargetDirectives(supportedRenderTargets);
 		shadowDirectives = new PackShadowDirectives();
 	}
@@ -39,6 +43,14 @@ public class PackDirectives {
 		return areCloudsEnabled;
 	}
 
+	public int getShadowMapResolution() {
+		return shadowMapResolution;
+	}
+
+	public float getShadowDistance() {
+		return shadowDistance;
+	}
+
 	public PackRenderTargetDirectives getRenderTargetDirectives() {
 		return renderTargetDirectives;
 	}
@@ -56,5 +68,11 @@ public class PackDirectives {
 
 		directives.acceptConstFloatDirective("sunPathRotation",
 				sunPathRotation -> this.sunPathRotation = sunPathRotation);
+
+		directives.acceptConstIntDirective("shadowMapResolution",
+				shadowMapResolution -> this.shadowMapResolution = shadowMapResolution);
+
+		directives.acceptConstFloatDirective("shadowDistance",
+				shadowDistance -> this.shadowDistance = shadowDistance);
 	}
 }

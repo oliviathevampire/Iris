@@ -27,9 +27,9 @@ public class DispatchingDirectiveHolder implements DirectiveHolder {
 	}
 
 	public void processDirective(ConstDirectiveParser.ConstDirective directive) {
-		final ConstDirectiveParser.Type type = directive.getType();
-		final String key = directive.getKey();
-		final String value = directive.getValue();
+		final ConstDirectiveParser.Type type = directive.type();
+		final String key = directive.key();
+		final String value = directive.value();
 
 		if (type == ConstDirectiveParser.Type.BOOL) {
 			BooleanConsumer consumer = booleanConstVariables.get(key);
@@ -131,15 +131,15 @@ public class DispatchingDirectiveHolder implements DirectiveHolder {
 
 				if (parts.length != 4) {
 					Iris.logger.error("Failed to process " + directive +
-						": expected 4 arguments to a vec4 constructor, got " + parts.length);
+							": expected 4 arguments to a vec4 constructor, got " + parts.length);
 				}
 
 				try {
 					consumer.accept(new Vector4f(
-						Float.parseFloat(parts[0]),
-						Float.parseFloat(parts[1]),
-						Float.parseFloat(parts[2]),
-						Float.parseFloat(parts[3])
+							Float.parseFloat(parts[0]),
+							Float.parseFloat(parts[1]),
+							Float.parseFloat(parts[2]),
+							Float.parseFloat(parts[3])
 					));
 				} catch (NumberFormatException e) {
 					Iris.logger.error("Failed to process " + directive, e);
@@ -156,7 +156,7 @@ public class DispatchingDirectiveHolder implements DirectiveHolder {
 	}
 
 	private void typeCheckHelper(String expected, Map<String, ? extends Object> candidates, ConstDirectiveParser.ConstDirective directive) {
-		if (candidates.containsKey(directive.getKey())) {
+		if (candidates.containsKey(directive.key())) {
 			Iris.logger.warn("Ignoring " + directive + " because it is of the wrong type, a type of " + expected + " is expected.");
 		}
 	}

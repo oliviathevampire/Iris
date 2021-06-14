@@ -1,14 +1,9 @@
 package net.coderbot.iris.mixin.texunits;
 
-import net.coderbot.iris.texunits.TextureUnit;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-
-import net.minecraft.client.render.BufferVertexConsumer;
-import net.minecraft.client.render.VertexConsumer;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.render.BufferVertexConsumer;
+import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(BufferVertexConsumer.class)
 @Environment(EnvType.CLIENT)

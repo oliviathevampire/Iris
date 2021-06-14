@@ -1,16 +1,15 @@
 package net.coderbot.iris.uniforms;
 
-import static net.coderbot.iris.gl.uniform.UniformUpdateFrequency.PER_FRAME;
-
-import java.nio.FloatBuffer;
-import java.util.function.Supplier;
-
 import net.coderbot.iris.gl.uniform.UniformHolder;
-
 import net.coderbot.iris.pipeline.ShadowRenderer;
 import net.coderbot.iris.shaderpack.PackDirectives;
 import net.coderbot.iris.shadow.ShadowMatrices;
 import net.minecraft.util.math.Matrix4f;
+
+import java.nio.FloatBuffer;
+import java.util.function.Supplier;
+
+import static net.coderbot.iris.gl.uniform.UniformUpdateFrequency.PER_FRAME;
 
 public final class MatrixUniforms {
 	private MatrixUniforms() {
@@ -23,14 +22,15 @@ public final class MatrixUniforms {
 		addMatrix(uniforms, "Projection", CapturedRenderingState.INSTANCE::getGbufferProjection);
 		addShadowMatrix(uniforms, "ModelView", () ->
 				ShadowRenderer.createShadowModelView(directives.getSunPathRotation(), directives.getShadowDirectives().getIntervalSize()).peek().getModel().copy());
-		addShadowArrayMatrix(uniforms, "Projection", () -> ShadowMatrices.createOrthoMatrix(directives.getShadowDirectives().getDistance()));
+		addShadowArrayMatrix(uniforms, "Projection", () -> ShadowMatrices.createOrthoMatrix(directives.getShadowDirectives().getDistance(),
+				directives.getShadowMapResolution()));
 	}
 
 	private static void addMatrix(UniformHolder uniforms, String name, Supplier<Matrix4f> supplier) {
 		uniforms
-			.uniformMatrix(PER_FRAME, "gbuffer" + name, supplier)
-			.uniformJomlMatrix(PER_FRAME, "gbuffer" + name + "Inverse", new Inverted(supplier))
-			.uniformMatrix(PER_FRAME, "gbufferPrevious" + name, new Previous(supplier));
+				.uniformMatrix(PER_FRAME, "gbuffer" + name, supplier)
+				.uniformJomlMatrix(PER_FRAME, "gbuffer" + name + "Inverse", new Inverted(supplier))
+				.uniformMatrix(PER_FRAME, "gbufferPrevious" + name, new Previous(supplier));
 	}
 
 	private static void addShadowMatrix(UniformHolder uniforms, String name, Supplier<Matrix4f> supplier) {

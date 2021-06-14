@@ -1,8 +1,6 @@
 package net.coderbot.iris.mixin;
 
 import com.mojang.blaze3d.platform.GlDebugInfo;
-import com.mojang.blaze3d.platform.GlStateManager;
-import net.coderbot.iris.Iris;
 import net.coderbot.iris.Iris;
 import net.coderbot.iris.pipeline.ShadowRenderer;
 import net.coderbot.iris.pipeline.WorldRenderingPipeline;
@@ -10,21 +8,18 @@ import net.coderbot.iris.pipeline.newshader.CoreWorldRenderingPipeline;
 import net.coderbot.iris.pipeline.newshader.WorldRenderingPhase;
 import net.coderbot.iris.uniforms.CapturedRenderingState;
 import net.coderbot.iris.uniforms.SystemTimeUniforms;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilderStorage;
-import net.minecraft.resource.ResourceManager;
+import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Shader;
+import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.math.Matrix4f;
-import org.lwjgl.opengl.GL20;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import net.minecraft.client.render.GameRenderer;
-
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.function.Function;
@@ -199,7 +194,7 @@ public class MixinGameRenderer {
 			"getParticleShader()Lnet/minecraft/client/render/Shader;"
 	}, at = @At("HEAD"), cancellable = true)
 	private static void iris$overrideParticleShader(CallbackInfoReturnable<Shader> cir) {
-		if(isPhase(WorldRenderingPhase.WEATHER)) {
+		if (isPhase(WorldRenderingPhase.WEATHER)) {
 			override(CoreWorldRenderingPipeline::getWeather, cir);
 		} else if (isRenderingWorld() && !ShadowRenderer.ACTIVE) {
 			override(CoreWorldRenderingPipeline::getParticles, cir);

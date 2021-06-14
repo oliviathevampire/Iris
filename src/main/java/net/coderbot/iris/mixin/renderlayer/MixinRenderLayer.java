@@ -3,23 +3,14 @@ package net.coderbot.iris.mixin.renderlayer;
 import net.coderbot.iris.layer.GbufferProgram;
 import net.coderbot.iris.layer.IrisRenderLayerWrapper;
 import net.coderbot.iris.layer.UseProgramRenderPhase;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderPhase;
-import net.minecraft.util.Identifier;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.util.Identifier;
+import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Environment(EnvType.CLIENT)
 @Mixin(RenderLayer.class)
@@ -50,23 +41,59 @@ public class MixinRenderLayer {
 	private static RenderLayer TRIPWIRE;
 
 	@Unique
-	private static RenderLayer iris$LINES;
+	private static final RenderLayer iris$LINES;
 
-	@Shadow @Final @Mutable private static RenderLayer LEASH;
-	@Shadow @Final @Mutable private static RenderLayer ARMOR_GLINT;
-	@Shadow @Final @Mutable private static RenderLayer ARMOR_ENTITY_GLINT;
-	@Shadow @Final @Mutable private static RenderLayer GLINT_TRANSLUCENT;
-	@Shadow @Final @Mutable private static RenderLayer GLINT;
-	@Shadow @Final @Mutable private static RenderLayer DIRECT_GLINT;
-	@Shadow @Final @Mutable private static RenderLayer ENTITY_GLINT;
-	@Shadow @Final @Mutable private static RenderLayer DIRECT_ENTITY_GLINT;
+	@Shadow
+	@Final
+	@Mutable
+	private static RenderLayer LEASH;
+	@Shadow
+	@Final
+	@Mutable
+	private static RenderLayer ARMOR_GLINT;
+	@Shadow
+	@Final
+	@Mutable
+	private static RenderLayer ARMOR_ENTITY_GLINT;
+	@Shadow
+	@Final
+	@Mutable
+	private static RenderLayer GLINT_TRANSLUCENT;
+	@Shadow
+	@Final
+	@Mutable
+	private static RenderLayer GLINT;
+	@Shadow
+	@Final
+	@Mutable
+	private static RenderLayer DIRECT_GLINT;
+	@Shadow
+	@Final
+	@Mutable
+	private static RenderLayer ENTITY_GLINT;
+	@Shadow
+	@Final
+	@Mutable
+	private static RenderLayer DIRECT_ENTITY_GLINT;
 
-	@Shadow @Final @Mutable private static RenderLayer TRANSLUCENT_MOVING_BLOCK;
-	@Shadow @Final @Mutable private static RenderLayer LIGHTNING;
+	@Shadow
+	@Final
+	@Mutable
+	private static RenderLayer TRANSLUCENT_MOVING_BLOCK;
+	@Shadow
+	@Final
+	@Mutable
+	private static RenderLayer LIGHTNING;
 
-	@Shadow @Final @Mutable private static RenderLayer WATER_MASK;
+	@Shadow
+	@Final
+	@Mutable
+	private static RenderLayer WATER_MASK;
 
-	@Shadow @Final @Mutable private static RenderLayer TRANSLUCENT_NO_CRUMBLING;
+	@Shadow
+	@Final
+	@Mutable
+	private static RenderLayer TRANSLUCENT_NO_CRUMBLING;
 
 	/*TODO(21w10a) figure out how to fix this
 	@Redirect(method = "<clinit>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/RenderLayer$MultiPhaseParameters$Builder;alpha(Lnet/minecraft/client/render/RenderPhase$Alpha;)Lnet/minecraft/client/render/RenderLayer$MultiPhaseParameters$Builder;"))
@@ -138,17 +165,17 @@ public class MixinRenderLayer {
 	}
 
 	@Inject(at = @At("RETURN"), method = {
-		"getArmorCutoutNoCull(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
-		"getEntitySolid(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
-		"getEntityCutout(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
-		"getItemEntityTranslucentCull(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
-		"getEntityTranslucentCull(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
-		"getEntitySmoothCutout(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
-		"getEntityDecal(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
-		"getEntityNoOutline(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
-		"getEntityShadow(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
-		"getText(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
-		"getTextSeeThrough(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
+			"getArmorCutoutNoCull(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
+			"getEntitySolid(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
+			"getEntityCutout(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
+			"getItemEntityTranslucentCull(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
+			"getEntityTranslucentCull(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
+			"getEntitySmoothCutout(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
+			"getEntityDecal(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
+			"getEntityNoOutline(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
+			"getEntityShadow(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
+			"getText(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
+			"getTextSeeThrough(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;",
 	}, cancellable = true)
 	private static void iris$wrapEntityRenderLayers(Identifier texture, CallbackInfoReturnable<RenderLayer> cir) {
 		RenderLayer base = cir.getReturnValue();
@@ -157,9 +184,9 @@ public class MixinRenderLayer {
 	}
 
 	@Inject(at = @At("RETURN"), method = {
-		"getEntityCutoutNoCull(Lnet/minecraft/util/Identifier;Z)Lnet/minecraft/client/render/RenderLayer;",
-		"getEntityCutoutNoCullZOffset(Lnet/minecraft/util/Identifier;Z)Lnet/minecraft/client/render/RenderLayer;",
-		"getEntityTranslucent(Lnet/minecraft/util/Identifier;Z)Lnet/minecraft/client/render/RenderLayer;",
+			"getEntityCutoutNoCull(Lnet/minecraft/util/Identifier;Z)Lnet/minecraft/client/render/RenderLayer;",
+			"getEntityCutoutNoCullZOffset(Lnet/minecraft/util/Identifier;Z)Lnet/minecraft/client/render/RenderLayer;",
+			"getEntityTranslucent(Lnet/minecraft/util/Identifier;Z)Lnet/minecraft/client/render/RenderLayer;",
 	}, cancellable = true)
 	private static void iris$wrapEntityRenderLayersZ(Identifier texture, boolean affectsOutline, CallbackInfoReturnable<RenderLayer> cir) {
 		RenderLayer base = cir.getReturnValue();
@@ -178,7 +205,7 @@ public class MixinRenderLayer {
 	}*/
 
 	@Inject(at = @At("RETURN"), method = {
-		"getBeaconBeam(Lnet/minecraft/util/Identifier;Z)Lnet/minecraft/client/render/RenderLayer;"
+			"getBeaconBeam(Lnet/minecraft/util/Identifier;Z)Lnet/minecraft/client/render/RenderLayer;"
 	}, cancellable = true)
 	private static void iris$wrapBeaconBeam(Identifier texture, boolean affectsOutline, CallbackInfoReturnable<RenderLayer> cir) {
 		RenderLayer base = cir.getReturnValue();
@@ -187,7 +214,7 @@ public class MixinRenderLayer {
 	}
 
 	@Inject(at = @At("RETURN"), method = {
-		"getEyes(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;"
+			"getEyes(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;"
 	}, cancellable = true)
 	private static void iris$wrapEyes(Identifier texture, CallbackInfoReturnable<RenderLayer> cir) {
 		RenderLayer base = cir.getReturnValue();
@@ -196,7 +223,7 @@ public class MixinRenderLayer {
 	}
 
 	@Inject(at = @At("RETURN"), method = {
-		"getEnergySwirl(Lnet/minecraft/util/Identifier;FF)Lnet/minecraft/client/render/RenderLayer;"
+			"getEnergySwirl(Lnet/minecraft/util/Identifier;FF)Lnet/minecraft/client/render/RenderLayer;"
 	}, cancellable = true)
 	private static void iris$wrapEnergySwirl(Identifier texture, float x, float y, CallbackInfoReturnable<RenderLayer> cir) {
 		RenderLayer base = cir.getReturnValue();
@@ -228,7 +255,7 @@ public class MixinRenderLayer {
 	}*/
 
 	@Inject(at = @At("RETURN"), method = {
-		"getBlockBreaking(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;"
+			"getBlockBreaking(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;"
 	}, cancellable = true)
 	private static void iris$wrapBlockBreakingRenderLayer(Identifier texture, CallbackInfoReturnable<RenderLayer> cir) {
 		RenderLayer base = cir.getReturnValue();

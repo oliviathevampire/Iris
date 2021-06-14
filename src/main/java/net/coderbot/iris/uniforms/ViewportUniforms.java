@@ -1,14 +1,12 @@
 package net.coderbot.iris.uniforms;
 
-import static net.coderbot.iris.gl.uniform.UniformUpdateFrequency.PER_FRAME;
+import net.coderbot.iris.gl.uniform.UniformHolder;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.Framebuffer;
 
 import java.util.Objects;
 
-import net.coderbot.iris.gl.uniform.UniformHolder;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.util.Window;
+import static net.coderbot.iris.gl.uniform.UniformUpdateFrequency.PER_FRAME;
 
 /**
  * Implements uniforms relating the current viewport
@@ -35,9 +33,9 @@ public final class ViewportUniforms {
 	public static void addViewportUniforms(UniformHolder uniforms) {
 		// TODO: What about the custom scale.composite3 property?
 		uniforms
-			.uniform1f(PER_FRAME, "viewHeight", () -> FRAMEBUFFER.textureHeight)
-			.uniform1f(PER_FRAME, "viewWidth", () -> FRAMEBUFFER.textureWidth)
-			.uniform1f(PER_FRAME, "aspectRatio", ViewportUniforms::getAspectRatio);
+				.uniform1f(PER_FRAME, "viewHeight", () -> FRAMEBUFFER.textureHeight)
+				.uniform1f(PER_FRAME, "viewWidth", () -> FRAMEBUFFER.textureWidth)
+				.uniform1f(PER_FRAME, "aspectRatio", ViewportUniforms::getAspectRatio);
 	}
 
 	/**

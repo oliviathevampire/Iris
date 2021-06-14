@@ -1,12 +1,10 @@
 package net.coderbot.iris.mixin;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import net.coderbot.iris.Iris;
 import net.coderbot.iris.shaderpack.ShaderPack;
+import net.minecraft.client.resource.language.LanguageDefinition;
+import net.minecraft.client.resource.language.TranslationStorage;
+import net.minecraft.resource.ResourceManager;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -14,15 +12,16 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.minecraft.client.resource.language.LanguageDefinition;
-import net.minecraft.client.resource.language.TranslationStorage;
-import net.minecraft.resource.ResourceManager;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 @Mixin(TranslationStorage.class)
 public class MixinTranslationStorage {
 
 	// This is needed to keep track of which language code we need to grab our lang files from
-	private static List<String> languageCodes = new ArrayList<>();
+	private static final List<String> languageCodes = new ArrayList<>();
 
 	private static final String LOAD = "load(Lnet/minecraft/resource/ResourceManager;Ljava/util/List;)Lnet/minecraft/client/resource/language/TranslationStorage;";
 

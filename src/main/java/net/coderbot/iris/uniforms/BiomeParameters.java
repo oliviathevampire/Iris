@@ -4,11 +4,13 @@ import net.coderbot.iris.gl.uniform.FloatSupplier;
 import net.coderbot.iris.gl.uniform.UniformHolder;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.world.biome.Biome;
 
 import java.util.Locale;
+import java.util.Objects;
 import java.util.function.IntSupplier;
 import java.util.function.ToIntFunction;
 
@@ -19,7 +21,6 @@ public class BiomeParameters {
 	private static final MinecraftClient client = MinecraftClient.getInstance();
 
 	public static void biomeParameters(UniformHolder uniforms) {
-
 		uniforms
 				.uniform1i(PER_TICK, "biome", playerI(player ->
 						BuiltinRegistries.BIOME.getRawId(player.world.getBiome(player.getBlockPos()))))
@@ -27,17 +28,26 @@ public class BiomeParameters {
 						player.world.getBiome(player.getBlockPos()).getCategory().ordinal()))
 				.uniform1i(PER_TICK, "biome_precipitation", playerI(player -> {
 					Biome.Precipitation precipitation = player.world.getBiome(player.getBlockPos()).getPrecipitation();
-					switch (precipitation){
-						case NONE: return 0;
-						case RAIN: return 1;
-						case SNOW: return 2;
-					}
-					throw new IllegalStateException("Unknown precipitation type:" + precipitation);
+					return switch (precipitation) {
+						case NONE -> 0;
+						case RAIN -> 1;
+						case SNOW -> 2;
+					};
 				}))
 				.uniform1f(PER_TICK, "rainfall", playerF(player ->
 						player.world.getBiome(player.getBlockPos()).getDownfall()))
 				.uniform1f(PER_TICK, "temperature", playerF(player ->
 						player.world.getBiome(player.getBlockPos()).getTemperature(player.getBlockPos())))
+				.uniform1i(PER_TICK, "waterFogColor", playerI(player ->
+						player.world.getBiome(player.getBlockPos()).getWaterFogColor()))
+				.uniform1i(PER_TICK, "waterColor", playerI(player ->
+						player.world.getBiome(player.getBlockPos()).getWaterColor()))
+				.uniform1i(PER_TICK, "foliageColor", playerI(player ->
+						player.world.getBiome(player.getBlockPos()).getFoliageColor()))
+				.uniform1i(PER_TICK, "skyColor", playerI(player ->
+						player.world.getBiome(player.getBlockPos()).getSkyColor()))
+				.uniform1f(PER_TICK, "downfall", playerF(player ->
+						player.world.getBiome(player.getBlockPos()).getDownfall()))
 
 				.uniform1i(ONCE, "PPT_NONE", () -> 0)
 				.uniform1i(ONCE, "PPT_RAIN", () -> 1)
@@ -86,6 +96,10 @@ public class BiomeParameters {
 				return function.applyAsFloat(player);
 			}
 		};
+	}
+
+	private static ClientWorld getWorld() {
+		return Objects.requireNonNull(MinecraftClient.getInstance().world);
 	}
 
 	@FunctionalInterface

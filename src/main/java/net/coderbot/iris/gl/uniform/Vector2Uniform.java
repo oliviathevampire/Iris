@@ -1,10 +1,9 @@
 package net.coderbot.iris.gl.uniform;
 
-import java.util.function.Supplier;
-
+import net.minecraft.util.math.Vec2f;
 import org.lwjgl.opengl.GL20;
 
-import net.minecraft.util.math.Vec2f;
+import java.util.function.Supplier;
 
 public class Vector2Uniform extends Uniform {
 	private Vec2f cachedValue;

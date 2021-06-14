@@ -1,34 +1,27 @@
 package net.coderbot.iris.shaderpack;
 
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMaps;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.coderbot.iris.Iris;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.state.StateManager;
+import net.minecraft.state.property.Property;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.InvalidIdentifierException;
+import net.minecraft.util.registry.Registry;
+import org.apache.logging.log4j.Level;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-
-import com.google.common.collect.ImmutableList;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMaps;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import net.coderbot.iris.Iris;
-import net.minecraft.block.Blocks;
-import net.minecraft.state.StateManager;
-import net.minecraft.tag.BlockTags;
-import org.apache.logging.log4j.Level;
-
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.state.property.Property;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.InvalidIdentifierException;
-import net.minecraft.util.registry.Registry;
+import java.util.*;
 
 /**
  * A utility class for parsing entries in item.properties, block.properties, and entities.properties files in shaderpacks
@@ -56,10 +49,10 @@ public class IdMap {
 
 	IdMap(Path shaderPath) {
 		itemIdMap = loadProperties(shaderPath, "item.properties")
-			.map(IdMap::parseItemIdMap).orElse(Object2IntMaps.emptyMap());
+				.map(IdMap::parseItemIdMap).orElse(Object2IntMaps.emptyMap());
 
 		entityIdMap = loadProperties(shaderPath, "entity.properties")
-			.map(IdMap::parseEntityIdMap).orElse(Object2IntMaps.emptyMap());
+				.map(IdMap::parseEntityIdMap).orElse(Object2IntMaps.emptyMap());
 
 		loadProperties(shaderPath, "block.properties").ifPresent(blockProperties -> {
 			// TODO: This won't parse block states in block.properties properly
@@ -319,7 +312,7 @@ public class IdMap {
 				Property property = condition.getKey();
 				String expectedValue = condition.getValue();
 
-				String actualValue = property.name((Comparable) state.get(property));
+				String actualValue = property.name(state.get(property));
 
 				if (!expectedValue.equals(actualValue)) {
 					matches = false;

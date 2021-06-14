@@ -1,11 +1,11 @@
 package net.coderbot.iris.gl.uniform;
 
-import java.util.function.Supplier;
-
-import org.lwjgl.opengl.GL21;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3f;
 import net.minecraft.util.math.Vector4f;
+import org.lwjgl.opengl.GL21;
+
+import java.util.function.Supplier;
 
 public class Vector3Uniform extends Uniform {
 	private final Vec3f cachedValue;

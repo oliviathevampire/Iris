@@ -5,7 +5,6 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.coderbot.iris.Iris;
 import net.coderbot.iris.fantastic.ExtendedBufferStorage;
-import net.coderbot.iris.fantastic.FlushableVertexConsumerProvider;
 import net.coderbot.iris.gl.framebuffer.GlFramebuffer;
 import net.coderbot.iris.gl.program.Program;
 import net.coderbot.iris.gl.program.ProgramBuilder;
@@ -13,8 +12,6 @@ import net.coderbot.iris.gl.texture.InternalTextureFormat;
 import net.coderbot.iris.layer.GbufferProgram;
 import net.coderbot.iris.mixin.WorldRendererAccessor;
 import net.coderbot.iris.mixin.shadows.ChunkInfoAccessor;
-import net.coderbot.iris.rendertarget.DepthTexture;
-import net.coderbot.iris.rendertarget.RenderTargets;
 import net.coderbot.iris.shaderpack.PackDirectives;
 import net.coderbot.iris.shaderpack.PackShadowDirectives;
 import net.coderbot.iris.shaderpack.ProgramDirectives;
@@ -28,9 +25,7 @@ import net.coderbot.iris.shadows.frustum.ShadowFrustum;
 import net.coderbot.iris.uniforms.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.GlProgramManager;
 import net.minecraft.client.render.*;
-import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
@@ -39,15 +34,14 @@ import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL20C;
 import org.lwjgl.opengl.GL30C;
 
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.nio.FloatBuffer;
 import java.util.Objects;
 
 public class ShadowRenderer implements ShadowMapRenderer {
@@ -91,8 +85,8 @@ public class ShadowRenderer implements ShadowMapRenderer {
 		}
 
 		this.targets = new ShadowRenderTargets(resolution, new InternalTextureFormat[]{
-			InternalTextureFormat.RGBA,
-			InternalTextureFormat.RGBA
+				InternalTextureFormat.RGBA,
+				InternalTextureFormat.RGBA
 		});
 
 		/*if (shadow != null) {
@@ -174,9 +168,14 @@ public class ShadowRenderer implements ShadowMapRenderer {
 	private static void setupAttributes(Program program) {
 		// Add default attribute values to avoid undefined behavior on content rendered without an extended vertex format
 		// TODO: Avoid duplication with DeferredWorldRenderingPipeline
-		setupAttribute(program, "mc_Entity", 10, -1.0F, -1.0F, -1.0F, -1.0F);
-		setupAttribute(program, "mc_midTexCoord", 11, 0.0F, 0.0F, 0.0F, 0.0F);
-		setupAttribute(program, "at_tangent", 12, 1.0F, 0.0F, 0.0F, 1.0F);
+
+		float blockId = -1.0F;
+
+		setupAttribute(program, "mc_Entity", 11, blockId, -1.0F, -1.0F, -1.0F);
+		setupAttribute(program, "mc_midTexCoord", 12, 0.0F, 0.0F, 0.0F, 0.0F);
+		setupAttribute(program, "at_tangent", 13, 1.0F, 0.0F, 0.0F, 1.0F);
+		setupAttribute(program, "at_velocity", 14, 1.0F, 0.0F, 0.0F, 1.0F);
+		setupAttribute(program, "at_midBlock", 15, 1.0F, 0.0F, 0.0F, 1.0F);
 	}
 
 	private static void setupAttribute(Program program, String name, int expectedLocation, float v0, float v1, float v2, float v3) {
@@ -220,7 +219,7 @@ public class ShadowRenderer implements ShadowMapRenderer {
 	}
 
 	private Frustum createEntityShadowFrustum(MatrixStack modelview) {
-		return createShadowFrustum(modelview, ShadowMatrices.createOrthoMatrix(16.0f));
+		return createShadowFrustum(modelview, ShadowMatrices.createOrthoMatrix(16.0f, pipeline.getShadowMapResolution()));
 	}
 
 	@Override
@@ -233,7 +232,7 @@ public class ShadowRenderer implements ShadowMapRenderer {
 		// Create our camera
 		MatrixStack modelView = createShadowModelView(this.sunPathRotation, this.intervalSize);
 		MODELVIEW = modelView.peek().getModel().copy();
-		float[] orthoMatrix = ShadowMatrices.createOrthoMatrix(halfPlaneLength);
+		float[] orthoMatrix = ShadowMatrices.createOrthoMatrix(halfPlaneLength, pipeline.getShadowMapResolution());
 
 		ORTHO = new Matrix4f();
 		((Matrix4fAccess) (Object) ORTHO).copyFromArray(orthoMatrix);

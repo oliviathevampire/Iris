@@ -68,10 +68,12 @@ public class ShaderPackListWidget extends IrisScreenEntryListWidget<ShaderPackLi
 			for (Path folder : folders) {
 				String name = folder.getFileName().toString();
 
-				if (!BUILTIN_PACKS.contains(name)) {
-					index++;
-					addEntry(index, name);
+				if (BUILTIN_PACKS.contains(name)) {
+					continue;
 				}
+
+				index++;
+				addEntry(index, name);
 			}
 
 			this.addEntry(new LabelEntry(PACK_LIST_LABEL));
@@ -86,9 +88,11 @@ public class ShaderPackListWidget extends IrisScreenEntryListWidget<ShaderPackLi
 	public void addEntry(int index, String name) {
 		ShaderPackEntry entry = new ShaderPackEntry(index, this, name);
 
-		if (Iris.getIrisConfig().getShaderPackName().equals(name)) {
-			this.setSelected(entry);
-		}
+		Iris.getIrisConfig().getShaderPackName().ifPresent(currentPackName -> {
+			if (name.equals(currentPackName)) {
+				setSelected(entry);
+			}
+		});
 		packCount++;
 
 		this.addEntry(entry);
@@ -98,7 +102,7 @@ public class ShaderPackListWidget extends IrisScreenEntryListWidget<ShaderPackLi
 		for (int i = 0; i < getEntryCount(); i++) {
 			BaseEntry entry = getEntry(i);
 
-			if (entry instanceof ShaderPackEntry && ((ShaderPackEntry)entry).packName.equals(name)) {
+			if (entry instanceof ShaderPackEntry && ((ShaderPackEntry) entry).packName.equals(name)) {
 				setSelected(entry);
 
 				return;
@@ -111,7 +115,8 @@ public class ShaderPackListWidget extends IrisScreenEntryListWidget<ShaderPackLi
 	}
 
 	public static abstract class BaseEntry extends AlwaysSelectedEntryListWidget.Entry<BaseEntry> {
-		protected BaseEntry() {}
+		protected BaseEntry() {
+		}
 	}
 
 	public static class ShaderPackEntry extends BaseEntry {

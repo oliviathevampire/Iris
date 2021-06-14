@@ -1,14 +1,9 @@
 package net.coderbot.iris.mixin.texunits;
 
 import com.mojang.blaze3d.platform.GlStateManager;
-import net.coderbot.iris.texunits.TextureUnit;
-import org.lwjgl.opengl.GL15;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.Constant;
-import org.spongepowered.asm.mixin.injection.ModifyConstant;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(GlStateManager.class)
 @Environment(EnvType.CLIENT)

@@ -1,13 +1,13 @@
 package net.coderbot.iris.shaderpack;
 
+import net.coderbot.iris.Iris;
+import org.apache.logging.log4j.Level;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-
-import net.coderbot.iris.Iris;
-import org.apache.logging.log4j.Level;
-import org.jetbrains.annotations.Nullable;
 
 public class ShaderPack {
 	private final ProgramSet base;
@@ -20,16 +20,20 @@ public class ShaderPack {
 	private final Map<String, Map<String, String>> langMap;
 	private final CustomTexture customNoiseTexture;
 	private boolean usingUnimplementedFeatures = false;
+	private final ShaderPackConfig config;
+	private final ShaderProperties shaderProperties;
 
 	public ShaderPack(Path root) throws IOException {
-		ShaderProperties shaderProperties = loadProperties(root, "shaders.properties")
-			.map(ShaderProperties::new)
-			.orElseGet(ShaderProperties::empty);
+		shaderProperties = loadProperties(root, "shaders.properties")
+				.map(ShaderProperties::new)
+				.orElseGet(ShaderProperties::empty);
+		this.config = new ShaderPackConfig(Iris.getIrisConfig().getShaderPackName().orElse(""));
+		this.config.load();
 
-		this.base = new ProgramSet(root, root, shaderProperties, this);
-		this.overworld = loadOverrides(root, "world0", shaderProperties, this);
-		this.nether = loadOverrides(root, "world-1", shaderProperties, this);
-		this.end = loadOverrides(root, "world1", shaderProperties, this);
+		this.base = new ProgramSet(root, root, this);
+		this.overworld = loadOverrides(root, "world0", this);
+		this.nether = loadOverrides(root, "world-1", this);
+		this.end = loadOverrides(root, "world1", this);
 
 		this.idMap = new IdMap(root);
 		this.langMap = parseLangEntries(root);
@@ -47,6 +51,7 @@ public class ShaderPack {
 				return null;
 			}
 		}).orElse(null);
+		this.config.save();
 
 		// TODO: remove and actually detect for unimplemented features
 		markUsingUnimplementedFeatures();
@@ -61,11 +66,11 @@ public class ShaderPack {
 	}
 
 	@Nullable
-	private static ProgramSet loadOverrides(Path root, String subfolder, ShaderProperties shaderProperties, ShaderPack pack) throws IOException {
+	private static ProgramSet loadOverrides(Path root, String subfolder, ShaderPack pack) throws IOException {
 		Path sub = root.resolve(subfolder);
 
 		if (Files.exists(sub)) {
-			return new ProgramSet(sub, root, shaderProperties, pack);
+			return new ProgramSet(sub, root, pack);
 		}
 
 		return null;
@@ -87,22 +92,11 @@ public class ShaderPack {
 	}
 
 	public ProgramSet getProgramSet(DimensionId dimension) {
-		ProgramSet overrides;
-
-		switch (dimension) {
-			case OVERWORLD:
-				overrides = overworld;
-				break;
-			case NETHER:
-				overrides = nether;
-				break;
-			case END:
-				overrides = end;
-				break;
-			default:
-				throw new IllegalArgumentException("Unknown dimension " + dimension);
-		}
-
+		ProgramSet overrides = switch (dimension) {
+			case OVERWORLD -> overworld;
+			case NETHER -> nether;
+			case END -> end;
+		};
 		return ProgramSet.merged(base, overrides);
 	}
 
@@ -116,6 +110,14 @@ public class ShaderPack {
 
 	public Map<String, Map<String, String>> getLangMap() {
 		return langMap;
+	}
+
+	public ShaderProperties getShaderProperties() {
+		return shaderProperties;
+	}
+
+	public ShaderPackConfig getConfig() {
+		return config;
 	}
 
 	private Map<String, Map<String, String>> parseLangEntries(Path root) throws IOException {

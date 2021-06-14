@@ -1,14 +1,14 @@
 package net.coderbot.iris.shaderpack;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import net.coderbot.iris.gl.blending.AlphaTest;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 public class ProgramDirectives {
 	private static final ImmutableList<String> LEGACY_RENDER_TARGETS = PackRenderTargetDirectives.LEGACY_RENDER_TARGETS;
@@ -28,7 +28,7 @@ public class ProgramDirectives {
 		// undefined data to be written to colortex7.
 		//
 		// TODO: Figure out how to infer the DRAWBUFFERS directive when it is missing.
-		drawBuffers = findDrawbuffersDirective(source.getFragmentSource()).orElse(new int[] { 0 });
+		drawBuffers = findDrawbuffersDirective(source.getFragmentSource()).orElse(new int[]{0});
 
 		if (properties != null) {
 			viewportScale = properties.getViewportScaleOverrides().getOrDefault(source.getName(), 1.0f);
@@ -70,9 +70,9 @@ public class ProgramDirectives {
 
 	private static Optional<int[]> findDrawbuffersDirective(Optional<String> stageSource) {
 		return stageSource
-			.flatMap(fragment -> CommentDirectiveParser.findDirective(fragment, "DRAWBUFFERS"))
-			.map(String::toCharArray)
-			.map(ProgramDirectives::parseDigits);
+				.flatMap(fragment -> CommentDirectiveParser.findDirective(fragment, "DRAWBUFFERS"))
+				.map(String::toCharArray)
+				.map(ProgramDirectives::parseDigits);
 	}
 
 	private static int[] parseDigits(char[] directiveChars) {

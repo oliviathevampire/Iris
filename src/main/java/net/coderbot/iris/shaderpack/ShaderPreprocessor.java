@@ -1,17 +1,18 @@
 package net.coderbot.iris.shaderpack;
 
+import net.coderbot.iris.Iris;
+
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ShaderPreprocessor {
-	public static String process(Path rootPath, Path shaderPath, String source) throws IOException {
+	public static String process(Path rootPath, Path shaderPath, String source, ShaderPackConfig config) throws IOException {
 		StringBuilder processed = new StringBuilder();
 
-		List<String> lines = processInternal(rootPath, shaderPath, source);
+		List<String> lines = processInternal(rootPath, shaderPath, source, config);
 
 		for (String line : lines) {
 			processed.append(line);
@@ -21,7 +22,7 @@ public class ShaderPreprocessor {
 		return processed.toString();
 	}
 
-	private static List<String> processInternal(Path rootPath, Path shaderPath, String source) throws IOException {
+	private static List<String> processInternal(Path rootPath, Path shaderPath, String source, ShaderPackConfig config) throws IOException {
 		List<String> lines = new ArrayList<>();
 
 		// Match any valid newline sequence
@@ -31,7 +32,7 @@ public class ShaderPreprocessor {
 
 			if (trimmedLine.startsWith("#include ")) {
 				try {
-					lines.addAll(include(rootPath, shaderPath, trimmedLine));
+					lines.addAll(include(rootPath, shaderPath, trimmedLine, config));
 				} catch (IOException e) {
 					throw new IOException("Failed to read file from #include directive", e);
 				}
@@ -48,10 +49,17 @@ public class ShaderPreprocessor {
 			}
 		}
 
+		try {
+			DefineOptionParser.processConfigOptions(lines, config);
+		} catch (Exception e) {
+			Iris.logger.error("Error while processing config options for file {}", shaderPath.toString());
+			Iris.logger.error(e.getMessage());
+		}
+
 		return lines;
 	}
 
-	private static List<String> include(Path rootPath, Path shaderPath, String directive) throws IOException {
+	private static List<String> include(Path rootPath, Path shaderPath, String directive, ShaderPackConfig config) throws IOException {
 		// Remove the "#include " part so that we just have the file path
 		String target = directive.substring("#include ".length()).trim();
 
@@ -77,10 +85,10 @@ public class ShaderPreprocessor {
 
 		String source = readFile(included);
 
-		return processInternal(rootPath, included, source);
+		return processInternal(rootPath, included, source, config);
 	}
 
 	private static String readFile(Path path) throws IOException {
-		return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+		return Files.readString(path);
 	}
 }

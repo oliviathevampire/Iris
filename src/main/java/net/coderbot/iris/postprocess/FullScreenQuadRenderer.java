@@ -3,10 +3,10 @@ package net.coderbot.iris.postprocess;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.coderbot.iris.fantastic.VertexBufferHelper;
 import net.minecraft.client.gl.VertexBuffer;
-import net.minecraft.client.render.*;
-import org.lwjgl.opengl.GL11;
-
-import org.lwjgl.opengl.GL20C;
+import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.BufferRenderer;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormats;
 
 /**
  * Renders a full-screen textured quad to the screen. Used in composite / deferred rendering.
@@ -14,7 +14,7 @@ import org.lwjgl.opengl.GL20C;
 public class FullScreenQuadRenderer {
 	public static final FullScreenQuadRenderer INSTANCE = new FullScreenQuadRenderer();
 
-	private VertexBuffer quad;
+	private final VertexBuffer quad;
 
 	private FullScreenQuadRenderer() {
 		// 1 quad * vertex size in bytes * 6 vertices per quad (2 triangles) = initial allocation

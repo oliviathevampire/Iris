@@ -39,7 +39,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Objects;
 
 public class FinalPassRenderer {
 	private final RenderTargets renderTargets;
@@ -88,7 +87,7 @@ public class FinalPassRenderer {
 
 		this.renderTargets = renderTargets;
 
-		this.baseline = renderTargets.createFramebufferWritingToMain(new int[] {0});
+		this.baseline = renderTargets.createFramebufferWritingToMain(new int[]{0});
 
 		// TODO: We don't actually fully swap the content, we merely copy it from alt to main
 		// This works for the most part, but it's not perfect. A better approach would be creating secondary
@@ -103,7 +102,7 @@ public class FinalPassRenderer {
 			}
 
 			SwapPass swap = new SwapPass();
-			swap.from = renderTargets.createFramebufferWritingToAlt(new int[] {target});
+			swap.from = renderTargets.createFramebufferWritingToAlt(new int[]{target});
 			swap.from.readBuffer(target);
 			swap.targetTexture = renderTargets.get(target).getMainTexture();
 

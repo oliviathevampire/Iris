@@ -28,11 +28,7 @@ import net.coderbot.iris.vertices.IrisVertexFormats;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.render.Shader;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.render.*;
 import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
@@ -75,6 +71,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 	private final Shader crumbling;
 	private final Shader text;
 	private final Shader hand;
+	private final Shader handWater;
 
 	private final Shader terrainTranslucent;
 	private WorldRenderingPhase phase = WorldRenderingPhase.NOT_RENDERING_WORLD;
@@ -101,7 +98,9 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 	boolean isBeforeTranslucent;
 
 	private final int waterId;
+	private final int shadowMapResolution;
 	private final float sunPathRotation;
+	private final float shadowDistance;
 	private final boolean shouldRenderClouds;
 
 	public NewWorldRenderingPipeline(ProgramSet programSet) throws IOException {
@@ -124,7 +123,9 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 
 		this.renderTargets = new RenderTargets(MinecraftClient.getInstance().getFramebuffer(), programSet.getPackDirectives().getRenderTargetDirectives());
 		this.waterId = programSet.getPack().getIdMap().getBlockProperties().getOrDefault(new Identifier("minecraft", "water"), -1);
+		this.shadowMapResolution = programSet.getPackDirectives().getShadowMapResolution();
 		this.sunPathRotation = programSet.getPackDirectives().getSunPathRotation();
+		this.shadowDistance = programSet.getPackDirectives().getShadowDistance();
 
 		// Don't clobber anything in texture unit 0. It probably won't cause issues, but we're just being cautious here.
 		GlStateManager._activeTexture(GL20C.GL_TEXTURE2);
@@ -178,6 +179,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 		Optional<ProgramSource> terrainCutoutMippedSource = first(programSet.getGbuffersTerrainCutoutMip(), programSet.getGbuffersTerrain(), programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured());
 		Optional<ProgramSource> translucentSource = first(programSet.getGbuffersWater(), terrainSource);
 		Optional<ProgramSource> handSource = first(programSet.getGbuffersHand(), programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured(), programSet.getGbuffersBasic());
+		Optional<ProgramSource> handWaterSource = first(programSet.getGbuffersHandWater(), programSet.getGbuffersHand(), programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured());
 		Optional<ProgramSource> shadowSource = programSet.getShadow();
 
 		Optional<ProgramSource> entitiesSource = first(programSet.getGbuffersEntities(), programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured(), programSet.getGbuffersBasic());
@@ -187,7 +189,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 
 		this.shadowMapRenderer = new ShadowRenderer(this, programSet.getShadow().orElse(null), programSet.getPackDirectives());
 
-		this.baseline = renderTargets.createFramebufferWritingToMain(new int[] {0});
+		this.baseline = renderTargets.createFramebufferWritingToMain(new int[]{0});
 
 		// Matches OptiFine's default for CUTOUT and CUTOUT_MIPPED.
 		AlphaTest terrainCutoutAlpha = new AlphaTest(AlphaTestFunction.GREATER, 0.1F);
@@ -214,6 +216,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 			this.crumbling = createShader("gbuffers_damagedblock", damagedBlockSource, nonZeroAlpha, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL, true);
 			this.text = createShader("gbuffers_entities_text", entitiesSource, nonZeroAlpha, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT, true);
 			this.hand = createShader("gbuffers_hand", handSource, nonZeroAlpha, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT, true);
+			this.handWater = createShader("gbuffers_hand_water", handSource, nonZeroAlpha, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT, true);
 
 			// TODO: Shadow programs should have access to different samplers.
 			this.shadowTerrainCutout = createShadowShader("shadow_terrain_cutout", shadowSource, terrainCutoutAlpha, IrisVertexFormats.TERRAIN, true);
@@ -627,6 +630,16 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 	@Override
 	public float getSunPathRotation() {
 		return sunPathRotation;
+	}
+
+	@Override
+	public int getShadowMapResolution() {
+		return shadowMapResolution;
+	}
+
+	@Override
+	public float getShadowDistance() {
+		return shadowDistance;
 	}
 
 	@Override

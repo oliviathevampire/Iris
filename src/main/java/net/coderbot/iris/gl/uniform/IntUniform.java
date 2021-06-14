@@ -1,8 +1,8 @@
 package net.coderbot.iris.gl.uniform;
 
-import java.util.function.IntSupplier;
-
 import org.lwjgl.opengl.GL21;
+
+import java.util.function.IntSupplier;
 
 public class IntUniform extends Uniform {
 	private int cachedValue;

@@ -1,16 +1,9 @@
 package net.coderbot.iris.mixin.texunits;
 
-import net.coderbot.iris.texunits.TextureUnit;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Constant;
-import org.spongepowered.asm.mixin.injection.ModifyConstant;
-import org.spongepowered.asm.mixin.injection.Slice;
-
-import net.minecraft.client.render.VertexFormats;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.render.VertexFormats;
+import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(VertexFormats.class)
 @Environment(EnvType.CLIENT)

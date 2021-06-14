@@ -1,18 +1,15 @@
 package net.coderbot.iris.rendertarget;
 
+import com.google.common.collect.ImmutableSet;
+import net.coderbot.iris.Iris;
+import net.coderbot.iris.gl.framebuffer.GlFramebuffer;
+import net.coderbot.iris.shaderpack.PackRenderTargetDirectives;
+import net.minecraft.client.gl.Framebuffer;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import com.google.common.collect.ImmutableSet;
-import net.coderbot.iris.Iris;
-import net.coderbot.iris.gl.framebuffer.GlFramebuffer;
-import net.coderbot.iris.gl.texture.InternalTextureFormat;
-import net.coderbot.iris.shaderpack.PackDirectives;
-
-import net.coderbot.iris.shaderpack.PackRenderTargetDirectives;
-import net.minecraft.client.gl.Framebuffer;
 
 public class RenderTargets {
 	/**
@@ -123,7 +120,7 @@ public class RenderTargets {
 
 		flipped.forEach(index -> stageWritesToAlt[index] = true);
 
-		GlFramebuffer framebuffer =  createColorFramebuffer(stageWritesToAlt, drawBuffers);
+		GlFramebuffer framebuffer = createColorFramebuffer(stageWritesToAlt, drawBuffers);
 
 		framebuffer.addDepthAttachment(this.getDepthTexture().getTextureId());
 
@@ -135,7 +132,7 @@ public class RenderTargets {
 
 		Arrays.fill(stageWritesToAlt, clearsAlt);
 
-		GlFramebuffer framebuffer =  createColorFramebuffer(stageWritesToAlt, drawBuffers);
+		GlFramebuffer framebuffer = createColorFramebuffer(stageWritesToAlt, drawBuffers);
 
 		framebuffer.addDepthAttachment(this.getDepthTexture().getTextureId());
 
@@ -147,7 +144,7 @@ public class RenderTargets {
 
 		Arrays.fill(stageWritesToAlt, false);
 
-		GlFramebuffer framebuffer =  createColorFramebuffer(stageWritesToAlt, new int[] {0, 1});
+		GlFramebuffer framebuffer = createColorFramebuffer(stageWritesToAlt, new int[]{0, 1});
 
 		framebuffer.addDepthAttachment(this.getDepthTexture().getTextureId());
 

@@ -1,22 +1,14 @@
 package net.coderbot.iris.shaderpack;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import it.unimi.dsi.fastutil.objects.Object2FloatMap;
-import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectSet;
+import it.unimi.dsi.fastutil.objects.*;
 import net.coderbot.iris.Iris;
-import net.coderbot.iris.gl.blending.AlphaTestFunction;
 import net.coderbot.iris.gl.blending.AlphaTest;
+import net.coderbot.iris.gl.blending.AlphaTestFunction;
+
+import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.Properties;
+import java.util.function.Consumer;
 
 public class ShaderProperties {
 	private boolean enableClouds = true;
@@ -38,6 +30,7 @@ public class ShaderProperties {
 	private OptionalBoolean rainDepth;
 	private OptionalBoolean beaconBeamDepth;
 	private OptionalBoolean separateAo;
+	private OptionalInt aoLevel;
 	private OptionalBoolean frustumCulling;
 	// TODO: Custom textures
 	// TODO: private Map<String, String> optifineVersionRequirements;
@@ -90,6 +83,7 @@ public class ShaderProperties {
 			handleBooleanDirective(key, value, "rain.depth", bool -> rainDepth = bool);
 			handleBooleanDirective(key, value, "beacon.beam.depth", bool -> beaconBeamDepth = bool);
 			handleBooleanDirective(key, value, "separateAo", bool -> separateAo = bool);
+			handleIntegerDirective(key, value, "aoLevel", integer -> aoLevel = integer);
 			handleBooleanDirective(key, value, "frustum.culling", bool -> frustumCulling = bool);
 
 			// TODO: Min optifine versions, custom textures, shader options layout / appearance / profiles
@@ -175,6 +169,13 @@ public class ShaderProperties {
 		} else {
 			Iris.logger.warn("Unexpected value for boolean key " + key + " in shaders.properties: got " + value + ", but expected either true or false");
 		}
+	}
+
+	private static void handleIntegerDirective(String key, String value, String expectedKey, Consumer<OptionalInt> handler) {
+		if (!expectedKey.equals(key)) {
+			return;
+		}
+		handler.accept(OptionalInt.of(Integer.parseInt(value)));
 	}
 
 	private static void handlePassDirective(String prefix, String key, String value, Consumer<String> handler) {
@@ -283,5 +284,9 @@ public class ShaderProperties {
 
 	public Optional<String> getNoiseTexturePath() {
 		return Optional.ofNullable(noiseTexturePath);
+	}
+
+	public OptionalInt getAoLevel() {
+		return aoLevel;
 	}
 }

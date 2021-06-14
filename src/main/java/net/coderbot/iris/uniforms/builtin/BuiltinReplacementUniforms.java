@@ -1,13 +1,10 @@
 package net.coderbot.iris.uniforms.builtin;
 
-import net.coderbot.iris.Iris;
 import net.coderbot.iris.gl.uniform.UniformHolder;
 import net.coderbot.iris.gl.uniform.UniformUpdateFrequency;
-
-import net.minecraft.util.math.Matrix4f;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.util.math.Matrix4f;
 
 @Environment(EnvType.CLIENT)
 public class BuiltinReplacementUniforms {

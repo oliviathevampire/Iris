@@ -1,11 +1,7 @@
 package net.coderbot.iris.gl.program;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.coderbot.iris.gl.shader.GlShader;
-import net.coderbot.iris.gl.shader.ProgramCreator;
-import net.coderbot.iris.gl.shader.ShaderConstants;
-import net.coderbot.iris.gl.shader.ShaderType;
-import net.coderbot.iris.gl.shader.StandardMacros;
+import net.coderbot.iris.gl.shader.*;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL20C;
 import org.lwjgl.opengl.GL21C;
@@ -61,7 +57,7 @@ public class ProgramBuilder extends ProgramUniforms.Builder {
 		fragment = buildShader(ShaderType.FRAGMENT, name + ".fsh", fragmentSource);
 
 		int programId;
-		
+
 		if (geometry != null) {
 			programId = ProgramCreator.create(name, vertex, geometry, fragment);
 		} else {

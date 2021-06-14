@@ -1,12 +1,11 @@
 package net.coderbot.iris.layer;
 
-import java.util.Objects;
-import java.util.Optional;
-
 import net.coderbot.iris.mixin.renderlayer.RenderLayerAccessor;
+import net.minecraft.client.render.RenderLayer;
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.client.render.RenderLayer;
+import java.util.Objects;
+import java.util.Optional;
 
 public class IrisRenderLayerWrapper extends RenderLayer {
 	private final UseProgramRenderPhase useProgram;
@@ -14,7 +13,7 @@ public class IrisRenderLayerWrapper extends RenderLayer {
 
 	public IrisRenderLayerWrapper(String name, RenderLayer wrapped, UseProgramRenderPhase useProgram) {
 		super(name, wrapped.getVertexFormat(), wrapped.getDrawMode(), wrapped.getExpectedBufferSize(),
-			wrapped.hasCrumbling(), isTranslucent(wrapped), wrapped::startDrawing, wrapped::endDrawing);
+				wrapped.hasCrumbling(), isTranslucent(wrapped), wrapped::startDrawing, wrapped::endDrawing);
 
 		this.useProgram = useProgram;
 		this.wrapped = wrapped;

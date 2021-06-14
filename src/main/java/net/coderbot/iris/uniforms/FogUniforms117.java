@@ -2,7 +2,6 @@ package net.coderbot.iris.uniforms;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.coderbot.iris.gl.uniform.UniformHolder;
-import net.minecraft.client.render.entity.SpiderEntityRenderer;
 import net.minecraft.util.math.Vec3f;
 import net.minecraft.util.math.Vector4f;
 

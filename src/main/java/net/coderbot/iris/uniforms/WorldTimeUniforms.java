@@ -1,14 +1,12 @@
 package net.coderbot.iris.uniforms;
 
-import static net.coderbot.iris.gl.uniform.UniformUpdateFrequency.PER_TICK;
+import net.coderbot.iris.gl.uniform.UniformHolder;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.world.ClientWorld;
 
 import java.util.Objects;
 
-import net.coderbot.iris.gl.uniform.UniformHolder;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.SkyProperties;
-import net.minecraft.client.world.ClientWorld;
+import static net.coderbot.iris.gl.uniform.UniformUpdateFrequency.PER_TICK;
 
 public final class WorldTimeUniforms {
 	private WorldTimeUniforms() {
@@ -21,9 +19,8 @@ public final class WorldTimeUniforms {
 	 */
 	public static void addWorldTimeUniforms(UniformHolder uniforms) {
 		uniforms
-			.uniform1i(PER_TICK, "worldTime", WorldTimeUniforms::getWorldDayTime)
-			.uniform1i(PER_TICK, "worldDay", WorldTimeUniforms::getWorldDay)
-			.uniform1i(PER_TICK, "moonPhase", () -> getWorld().getMoonPhase());
+				.uniform1i(PER_TICK, "worldTime", WorldTimeUniforms::getWorldDayTime)
+				.uniform1i(PER_TICK, "worldDay", WorldTimeUniforms::getWorldDay);
 	}
 
 	private static int getWorldDayTime() {

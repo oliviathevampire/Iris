@@ -77,4 +77,14 @@ public class FixedFunctionWorldRenderingPipeline implements WorldRenderingPipeli
 		// No sun tilt
 		return 0;
 	}
+
+	@Override
+	public int getShadowMapResolution() {
+		return 0;
+	}
+
+	@Override
+	public float getShadowDistance() {
+		return 0;
+	}
 }

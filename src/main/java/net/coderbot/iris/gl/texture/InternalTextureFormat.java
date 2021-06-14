@@ -1,11 +1,11 @@
 package net.coderbot.iris.gl.texture;
 
-import java.util.Optional;
-
 import net.coderbot.iris.gl.GlVersion;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL30C;
 import org.lwjgl.opengl.GL31C;
+
+import java.util.Optional;
 
 public enum InternalTextureFormat {
 	// Default
@@ -21,6 +21,16 @@ public enum InternalTextureFormat {
 	RG8_SNORM(GL31C.GL_RG8_SNORM, GlVersion.GL_31),
 	RGB8_SNORM(GL31C.GL_RGB8_SNORM, GlVersion.GL_31),
 	RGBA8_SNORM(GL31C.GL_RGBA8_SNORM, GlVersion.GL_31),
+	// 8-bit integer
+	R8I(GL31C.GL_R8I, GlVersion.GL_31),
+	RG8I(GL31C.GL_RG8I, GlVersion.GL_31),
+	RGB8I(GL31C.GL_RGB8I, GlVersion.GL_31),
+	RGBA8I(GL31C.GL_RGBA8I, GlVersion.GL_31),
+	// 8-bit unsigned integer
+	R8UI(GL31C.GL_R8UI, GlVersion.GL_31),
+	RG8UI(GL31C.GL_RG8UI, GlVersion.GL_31),
+	RGB8UI(GL31C.GL_RGB8UI, GlVersion.GL_31),
+	RGBA8UI(GL31C.GL_RGBA8UI, GlVersion.GL_31),
 	// 16-bit normalized
 	R16(GL30C.GL_R16, GlVersion.GL_30),
 	RG16(GL30C.GL_RG16, GlVersion.GL_30),
@@ -36,6 +46,16 @@ public enum InternalTextureFormat {
 	RG16F(GL30C.GL_RG16F, GlVersion.GL_30),
 	RGB16F(GL30C.GL_RGB16F, GlVersion.GL_30),
 	RGBA16F(GL30C.GL_RGBA16F, GlVersion.GL_30),
+	// 16-bit integer
+	R16I(GL30C.GL_R16I, GlVersion.GL_30),
+	RG16I(GL30C.GL_RG16I, GlVersion.GL_30),
+	RGB16I(GL30C.GL_RGB16I, GlVersion.GL_30),
+	RGBA16I(GL30C.GL_RGBA16I, GlVersion.GL_30),
+	// 16-bit unsigned integer
+	R16UI(GL30C.GL_R16UI, GlVersion.GL_30),
+	RG16UI(GL30C.GL_RG16UI, GlVersion.GL_30),
+	RGB16UI(GL30C.GL_RGB16UI, GlVersion.GL_30),
+	RGBA16UI(GL30C.GL_RGBA16UI, GlVersion.GL_30),
 	// 32-bit float
 	R32F(GL30C.GL_R32F, GlVersion.GL_30),
 	RG32F(GL30C.GL_RG32F, GlVersion.GL_30),

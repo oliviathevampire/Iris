@@ -1,14 +1,14 @@
 package net.coderbot.iris.rendertarget;
 
-import java.nio.ByteBuffer;
-import java.util.Random;
-
 import com.mojang.blaze3d.platform.GlStateManager;
 import net.coderbot.iris.gl.GlResource;
 import net.coderbot.iris.gl.texture.TextureUploadHelper;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL13C;
 import org.lwjgl.opengl.GL20C;
+
+import java.nio.ByteBuffer;
+import java.util.Random;
 
 /**
  * An extremely simple noise texture. Each color channel contains a uniform random value from 0 to 255. Essentially just
@@ -29,7 +29,7 @@ public class NoiseTexture extends GlResource {
 
 		GL11C.glTexParameteri(GL11C.GL_TEXTURE_2D, GL20C.GL_TEXTURE_MAX_LEVEL, 0);
 		GL11C.glTexParameteri(GL11C.GL_TEXTURE_2D, GL20C.GL_TEXTURE_MIN_LOD, 0);
-		GL11C.glTexParameteri(GL11C.GL_TEXTURE_2D, GL20C.GL_TEXTURE_MAX_LOD,0);
+		GL11C.glTexParameteri(GL11C.GL_TEXTURE_2D, GL20C.GL_TEXTURE_MAX_LOD, 0);
 		GL11C.glTexParameterf(GL11C.GL_TEXTURE_2D, GL20C.GL_TEXTURE_LOD_BIAS, 0.0F);
 		resize(width, height);
 

@@ -1,13 +1,13 @@
 package net.coderbot.iris.mixin.fabulous;
 
 import net.coderbot.iris.Iris;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.client.option.Option;
 import net.minecraft.client.resource.VideoWarningManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.option.Option;
 
 @Environment(EnvType.CLIENT)
 @Mixin(Option.class)

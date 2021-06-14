@@ -1,14 +1,13 @@
 package net.coderbot.iris.uniforms;
 
-import static net.coderbot.iris.gl.uniform.UniformUpdateFrequency.ONCE;
-import static net.coderbot.iris.gl.uniform.UniformUpdateFrequency.PER_FRAME;
+import net.coderbot.iris.gl.uniform.UniformHolder;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.util.math.Vec3d;
 
 import java.util.function.Supplier;
 
-import net.coderbot.iris.gl.uniform.UniformHolder;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.math.Vec3d;
+import static net.coderbot.iris.gl.uniform.UniformUpdateFrequency.ONCE;
+import static net.coderbot.iris.gl.uniform.UniformUpdateFrequency.PER_FRAME;
 
 /**
  * @see <a href="https://github.com/IrisShaders/ShaderDoc/blob/master/uniforms.md#celestial-bodies">Uniforms: Camera</a>
@@ -21,10 +20,10 @@ public class CameraUniforms {
 
 	public static void addCameraUniforms(UniformHolder uniforms, FrameUpdateNotifier notifier) {
 		uniforms
-			.uniform1f(ONCE, "near", () -> 0.05)
-			.uniform1f(PER_FRAME, "far", CameraUniforms::getRenderDistanceInBlocks)
-			.uniform3d(PER_FRAME, "cameraPosition", CameraUniforms::getCameraPosition)
-			.uniform3d(PER_FRAME, "previousCameraPosition", new PreviousCameraPosition(notifier));
+				.uniform1f(ONCE, "near", () -> 0.05)
+				.uniform1f(PER_FRAME, "far", CameraUniforms::getRenderDistanceInBlocks)
+				.uniform3d(PER_FRAME, "cameraPosition", CameraUniforms::getCameraPosition)
+				.uniform3d(PER_FRAME, "previousCameraPosition", new PreviousCameraPosition(notifier));
 	}
 
 	private static int getRenderDistanceInBlocks() {

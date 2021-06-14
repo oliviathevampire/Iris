@@ -3,18 +3,18 @@ package net.coderbot.iris.mixin;
 import net.coderbot.iris.HorizonRenderer;
 import net.coderbot.iris.Iris;
 import net.coderbot.iris.fantastic.FlushableVertexConsumerProvider;
-import net.coderbot.iris.layer.GbufferProgram;
-import net.coderbot.iris.layer.GbufferPrograms;
-import net.coderbot.iris.pipeline.ShadowRenderer;
 import net.coderbot.iris.pipeline.DeferredWorldRenderingPipeline;
 import net.coderbot.iris.pipeline.WorldRenderingPipeline;
 import net.coderbot.iris.pipeline.newshader.CoreWorldRenderingPipeline;
 import net.coderbot.iris.pipeline.newshader.WorldRenderingPhase;
 import net.coderbot.iris.uniforms.CapturedRenderingState;
-import net.coderbot.iris.uniforms.FrameUpdateNotifier;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.render.*;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3f;
 import net.minecraft.util.profiler.Profiler;
@@ -25,12 +25,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.Matrix4f;
-
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(WorldRenderer.class)
@@ -40,8 +34,8 @@ public class MixinWorldRenderer {
 	private static final String RENDER = "render(Lnet/minecraft/client/util/math/MatrixStack;FJZLnet/minecraft/client/render/Camera;Lnet/minecraft/client/render/GameRenderer;Lnet/minecraft/client/render/LightmapTextureManager;Lnet/minecraft/util/math/Matrix4f;)V";
 	private static final String CLEAR = "Lcom/mojang/blaze3d/systems/RenderSystem;clear(IZ)V";
 	private static final String RENDER_SKY = "Lnet/minecraft/client/render/WorldRenderer;renderSky(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/util/math/Matrix4f;FLjava/lang/Runnable;)V";
-	private static final String RENDER_LAYER = "renderLayer(Lnet/minecraft/client/render/RenderLayer;Lnet/minecraft/client/util/math/MatrixStack;DDD)V";
-	private static final String RENDER_CLOUDS = "Lnet/minecraft/client/render/WorldRenderer;renderClouds(Lnet/minecraft/client/util/math/MatrixStack;FDDD)V";
+	private static final String RENDER_LAYER = "Lnet/minecraft/client/render/WorldRenderer;renderLayer(Lnet/minecraft/client/render/RenderLayer;Lnet/minecraft/client/util/math/MatrixStack;DDD;Lnet/minecraft/util/math/Matrix4f;)V";
+	private static final String RENDER_CLOUDS = "Lnet/minecraft/client/render/WorldRenderer;renderClouds(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/util/math/Matrix4f;FDDD)V";
 	private static final String RENDER_WEATHER = "Lnet/minecraft/client/render/WorldRenderer;renderWeather(Lnet/minecraft/client/render/LightmapTextureManager;FDDD)V";
 	private static final String RENDER_WORLD_BORDER = "Lnet/minecraft/client/render/WorldRenderer;renderWorldBorder(Lnet/minecraft/client/render/Camera;)V";
 
@@ -108,7 +102,7 @@ public class MixinWorldRenderer {
 	// TODO(21w10a): Restore sky render hooks
 	/*
 	@Inject(method = RENDER_SKY, at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;disableTexture()V"))
-	private void iris$renderSky$disableTexture(MatrixStack matrices, float tickDelta, CallbackInfo callback) {
+	private void iris$renderSky$disableTexture(MatrixStack matrices, Matrix4f matrix4f, float tickDelta, Runnable runnable, CallbackInfo ci) {
 		if (skyTextureEnabled) {
 			skyTextureEnabled = false;
 			pipeline.pushProgram(GbufferProgram.SKY_BASIC);
@@ -116,20 +110,20 @@ public class MixinWorldRenderer {
 	}*/
 
 	@Inject(method = RENDER_SKY,
-		at = @At(value = "INVOKE", target = "net/minecraft/client/gl/VertexBuffer.setShader (Lnet/minecraft/util/math/Matrix4f;Lnet/minecraft/util/math/Matrix4f;Lnet/minecraft/client/render/Shader;)V", shift = At.Shift.AFTER),
-		slice = @Slice(to = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/SkyProperties;getFogColorOverride(FF)[F")))
-	private void iris$renderSky$drawHorizon(MatrixStack matrices, Matrix4f projectionMatrix, float f, Runnable runnable, CallbackInfo callback) {
+			at = @At(value = "INVOKE", target = "net/minecraft/client/gl/VertexBuffer.setShader(Lnet/minecraft/util/math/Matrix4f;Lnet/minecraft/util/math/Matrix4f;Lnet/minecraft/client/render/Shader;)V", shift = At.Shift.AFTER),
+			slice = @Slice(to = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/SkyProperties;getFogColorOverride(FF)[F")))
+	private void iris$renderSky$drawHorizon(MatrixStack matrices, Matrix4f projectionMatrix, float tickDelta, Runnable runnable, CallbackInfo callback) {
 		new HorizonRenderer().renderHorizon(matrices.peek().getModel().copy(), projectionMatrix.copy(), GameRenderer.getPositionShader());
 	}
 
 	@Inject(method = RENDER_SKY, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/world/ClientWorld;getSkyAngle(F)F"),
 			slice = @Slice(from = @At(value = "FIELD", target = "Lnet/minecraft/util/math/Vec3f;POSITIVE_Y:Lnet/minecraft/util/math/Vec3f;")))
-	private void iris$renderSky$tiltSun(MatrixStack matrices, Matrix4f projectionMatrix, float f, Runnable runnable, CallbackInfo callback) {
+	private void iris$renderSky$tiltSun(MatrixStack matrices, Matrix4f projectionMatrix, float tickDelta, Runnable runnable, CallbackInfo callback) {
 		matrices.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(pipeline.getSunPathRotation()));
 	}
 
 	/*@Inject(method = RENDER_SKY, at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;enableTexture()V"))
-	private void iris$renderSky$enableTexture(MatrixStack matrices, float tickDelta, CallbackInfo callback) {
+	private void iris$renderSky$enableTexture(MatrixStack matrices, Matrix4f matrix4f, float tickDelta, Runnable runnable, CallbackInfo ci) {
 		if (!skyTextureEnabled) {
 			skyTextureEnabled = true;
 			pipeline.popProgram(GbufferProgram.SKY_BASIC);
@@ -148,8 +142,8 @@ public class MixinWorldRenderer {
 		pipeline.pushProgram(GbufferProgram.CLOUDS);
 	}
 
-	@Inject(method = "renderClouds", at = @At("HEAD"), cancellable = true)
-	private void iris$maybeRemoveClouds(MatrixStack matrices, float tickDelta, double cameraX, double cameraY, double cameraZ, CallbackInfo ci) {
+	@Inject(method = RENDER_CLOUDS, at = @At("HEAD"), cancellable = true)
+	private void iris$maybeRemoveClouds(MatrixStack matrices, Matrix4f matrix4f, float tickDelta, double cameraX, double cameraY, double cameraZ, CallbackInfo ci) {
 		if (!pipeline.shouldRenderClouds()) {
 			ci.cancel();
 		}
@@ -161,25 +155,38 @@ public class MixinWorldRenderer {
 	}*/
 
 	// TODO(21w10a): Restore render layer hooks
-	/*
-	@Inject(method = RENDER_LAYER, at = @At("HEAD"))
-	private void iris$beginTerrainLayer(RenderLayer renderLayer, MatrixStack matrixStack, double cameraX, double cameraY, double cameraZ, CallbackInfo callback) {
-		if (renderLayer == RenderLayer.getSolid() || renderLayer == RenderLayer.getCutout() || renderLayer == RenderLayer.getCutoutMipped()) {
+	/*@Inject(method = "renderLayer", at = @At("HEAD"))
+	private void iris$beginTerrainLayer(RenderLayer renderLayer, MatrixStack matrices, double cameraX, double cameraY, double cameraZ, Matrix4f matrix4f, CallbackInfo ci) {
+		*//*if (renderLayer == RenderLayer.getSolid()) {
+			pipeline.pushProgram(GbufferProgram.TERRAIN_SOLID);
+		} else if (renderLayer == RenderLayer.getCutout()) {
+			pipeline.pushProgram(GbufferProgram.TERRAIN_CUTOUT);
+		} else if(renderLayer == RenderLayer.getCutoutMipped()) {
+			pipeline.pushProgram(GbufferProgram.TERRAIN_CUTOUT_MIPPED);
+		}*//*if (renderLayer == RenderLayer.getSolid() || renderLayer == RenderLayer.getCutout() || renderLayer == RenderLayer.getCutoutMipped()) {
 			pipeline.pushProgram(GbufferProgram.TERRAIN);
 		} else if (renderLayer == RenderLayer.getTranslucent() || renderLayer == RenderLayer.getTripwire()) {
 			pipeline.pushProgram(GbufferProgram.TRANSLUCENT_TERRAIN);
 		} else {
+//			pipeline.pushProgram(GbufferProgram.TERRAIN);
 			throw new IllegalStateException("[Iris] Unexpected terrain layer: " + renderLayer);
 		}
 	}
 
-	@Inject(method = RENDER_LAYER, at = @At("RETURN"))
-	private void iris$endTerrainLayer(RenderLayer renderLayer, MatrixStack matrixStack, double cameraX, double cameraY, double cameraZ, CallbackInfo callback) {
-		if (renderLayer == RenderLayer.getSolid() || renderLayer == RenderLayer.getCutout() || renderLayer == RenderLayer.getCutoutMipped()) {
+	@Inject(method = "renderLayer", at = @At("RETURN"))
+	private void iris$endTerrainLayer(RenderLayer renderLayer, MatrixStack matrixStack, double cameraX, double cameraY, double cameraZ, Matrix4f matrix4f, CallbackInfo callback) {
+		*//*if (renderLayer == RenderLayer.getSolid()) {
+			pipeline.popProgram(GbufferProgram.TERRAIN_SOLID);
+		} else if (renderLayer == RenderLayer.getCutout()) {
+			pipeline.popProgram(GbufferProgram.TERRAIN_CUTOUT);
+		} else if(renderLayer == RenderLayer.getCutoutMipped()) {
+			pipeline.popProgram(GbufferProgram.TERRAIN_CUTOUT_MIPPED);
+		}*//*if (renderLayer == RenderLayer.getSolid() || renderLayer == RenderLayer.getCutout() || renderLayer == RenderLayer.getCutoutMipped()) {
 			pipeline.popProgram(GbufferProgram.TERRAIN);
 		} else if (renderLayer == RenderLayer.getTranslucent() || renderLayer == RenderLayer.getTripwire()) {
 			pipeline.popProgram(GbufferProgram.TRANSLUCENT_TERRAIN);
 		} else {
+//			pipeline.popProgram(GbufferProgram.TERRAIN);
 			throw new IllegalStateException("[Iris] Unexpected terrain layer: " + renderLayer);
 		}
 	}*/

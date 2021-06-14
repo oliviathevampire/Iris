@@ -3,7 +3,6 @@ package net.coderbot.iris.vertices;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
-import org.lwjgl.opengl.GL11C;
 
 public class ExtendedBufferBuilder extends BufferBuilder {
 	private VertexFormat originalFormat;

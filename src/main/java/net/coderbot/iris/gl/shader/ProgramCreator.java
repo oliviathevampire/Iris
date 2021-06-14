@@ -14,9 +14,11 @@ public class ProgramCreator {
 
 		// TODO: This is *really* hardcoded, we need to refactor this to support external calls
 		// to glBindAttribLocation
-		GL20C.glBindAttribLocation(program, 10, "mc_Entity");
-		GL20C.glBindAttribLocation(program, 11, "mc_midTexCoord");
-		GL20C.glBindAttribLocation(program, 12, "at_tangent");
+		GL20C.glBindAttribLocation(program, 11, "mc_Entity");
+		GL20C.glBindAttribLocation(program, 12, "mc_midTexCoord");
+		GL20C.glBindAttribLocation(program, 13, "at_tangent");
+		GL20C.glBindAttribLocation(program, 14, "at_velocity");
+		GL20C.glBindAttribLocation(program, 15, "at_midBlock");
 
 		// TODO(21w10a): more hardcoding!!!!
 		GL20C.glBindAttribLocation(program, 0, "Position");

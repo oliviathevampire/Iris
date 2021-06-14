@@ -1,14 +1,8 @@
 package net.coderbot.iris.uniforms;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.IntSupplier;
-
 import net.coderbot.iris.gl.uniform.UniformHolder;
 import net.coderbot.iris.gl.uniform.UniformUpdateFrequency;
 import net.coderbot.iris.shaderpack.IdMap;
-
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
@@ -18,6 +12,10 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
+
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.IntSupplier;
 
 public final class IdMapUniforms {
 
@@ -29,13 +27,13 @@ public final class IdMapUniforms {
 		Map<Identifier, Integer> entityIdMap = idMap.getEntityIdMap();
 
 		uniforms
-			.uniform1i(UniformUpdateFrequency.PER_FRAME, "heldItemId", new HeldItemSupplier(Hand.MAIN_HAND,
-					idMap.getItemIdMap()))
-			.uniform1i(UniformUpdateFrequency.PER_FRAME, "heldItemId2", new HeldItemSupplier(Hand.OFF_HAND,
-					idMap.getItemIdMap()))
-			.uniform1i(UniformUpdateFrequency.PER_FRAME, "blockEntityId", () -> getBlockEntityId(blockIdMap))
-			.uniform1i(UniformUpdateFrequency.PER_FRAME, "entityColor", () -> getEntityColor(entityIdMap))
-			.uniform1i(UniformUpdateFrequency.PER_FRAME, "entityId", () -> getEntityId(entityIdMap));
+				.uniform1i(UniformUpdateFrequency.PER_FRAME, "heldItemId", new HeldItemSupplier(Hand.MAIN_HAND,
+						idMap.getItemIdMap()))
+				.uniform1i(UniformUpdateFrequency.PER_FRAME, "heldItemId2", new HeldItemSupplier(Hand.OFF_HAND,
+						idMap.getItemIdMap()))
+				.uniform1i(UniformUpdateFrequency.PER_FRAME, "blockEntityId", () -> getBlockEntityId(blockIdMap))
+				.uniform1i(UniformUpdateFrequency.PER_FRAME, "entityColor", () -> getEntityColor(entityIdMap))
+				.uniform1i(UniformUpdateFrequency.PER_FRAME, "entityId", () -> getEntityId(entityIdMap));
 
 	}
 

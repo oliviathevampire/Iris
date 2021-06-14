@@ -1,15 +1,9 @@
 package net.coderbot.iris.mixin.texunits;
 
-import net.coderbot.iris.texunits.TextureUnit;
-import org.lwjgl.opengl.GL15;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.Constant;
-import org.spongepowered.asm.mixin.injection.ModifyConstant;
-
-import net.minecraft.client.render.LightmapTextureManager;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.render.LightmapTextureManager;
+import org.spongepowered.asm.mixin.Mixin;
 
 /**
  * Modifies {@link LightmapTextureManager} to use a configurable texture unit, instead of being hardcoded to texture

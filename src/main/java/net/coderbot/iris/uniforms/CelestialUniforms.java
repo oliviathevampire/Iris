@@ -1,16 +1,15 @@
 package net.coderbot.iris.uniforms;
 
-import static net.coderbot.iris.gl.uniform.UniformUpdateFrequency.PER_FRAME;
-
-import java.util.Objects;
-
 import net.coderbot.iris.gl.uniform.UniformHolder;
-
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3f;
 import net.minecraft.util.math.Vector4f;
+
+import java.util.Objects;
+
+import static net.coderbot.iris.gl.uniform.UniformUpdateFrequency.PER_FRAME;
 
 /**
  * @see <a href="https://github.com/IrisShaders/ShaderDoc/blob/master/uniforms.md#celestial-bodies">Uniforms: Celestial bodies</a>
@@ -24,12 +23,12 @@ public final class CelestialUniforms {
 
 	public void addCelestialUniforms(UniformHolder uniforms) {
 		uniforms
-			.uniform1f(PER_FRAME, "sunAngle", CelestialUniforms::getSunAngle)
-			.uniformTruncated3f(PER_FRAME, "sunPosition", this::getSunPosition)
-			.uniformTruncated3f(PER_FRAME, "moonPosition", this::getMoonPosition)
-			.uniform1f(PER_FRAME, "shadowAngle", CelestialUniforms::getShadowAngle)
-			.uniformTruncated3f(PER_FRAME, "shadowLightPosition", this::getShadowLightPosition)
-			.uniformTruncated3f(PER_FRAME, "upPosition", CelestialUniforms::getUpPosition);
+				.uniform1f(PER_FRAME, "sunAngle", CelestialUniforms::getSunAngle)
+				.uniformTruncated3f(PER_FRAME, "sunPosition", this::getSunPosition)
+				.uniformTruncated3f(PER_FRAME, "moonPosition", this::getMoonPosition)
+				.uniform1f(PER_FRAME, "shadowAngle", CelestialUniforms::getShadowAngle)
+				.uniformTruncated3f(PER_FRAME, "shadowLightPosition", this::getShadowLightPosition)
+				.uniformTruncated3f(PER_FRAME, "upPosition", CelestialUniforms::getUpPosition);
 	}
 
 	public static float getSunAngle() {

@@ -3,7 +3,6 @@ package net.coderbot.iris.shaderpack;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 public class ConstDirectiveParser {
 	public static List<ConstDirective> findDirectives(String source) {
@@ -134,29 +133,7 @@ public class ConstDirectiveParser {
 		return true;
 	}
 
-	public static class ConstDirective {
-		private final Type type;
-		private final String key;
-		private final String value;
-
-		ConstDirective(Type type, String key, String value) {
-			this.type = type;
-			this.key = key;
-			this.value = value;
-		}
-
-		public Type getType() {
-			return type;
-		}
-
-		public String getKey() {
-			return key;
-		}
-
-		public String getValue() {
-			return value;
-		}
-
+	public record ConstDirective(Type type, String key, String value) {
 		public String toString() {
 			return "ConstDirective { " + type + " " + key + " = " + value + "; }";
 		}

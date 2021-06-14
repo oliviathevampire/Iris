@@ -1,16 +1,12 @@
 package net.coderbot.iris.gl.uniform;
 
+import net.minecraft.util.math.*;
+
 import java.util.OptionalInt;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
-
-import net.minecraft.util.math.Vec3f;
-import net.minecraft.util.math.Vector4f;
-import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.math.Vec2f;
-import net.minecraft.util.math.Vec3d;
 
 public interface LocationalUniformHolder extends UniformHolder {
 	LocationalUniformHolder addUniform(UniformUpdateFrequency updateFrequency, Uniform uniform);

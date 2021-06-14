@@ -6,25 +6,44 @@ import net.minecraft.client.render.Shader;
 
 public interface CoreWorldRenderingPipeline extends WorldRenderingPipeline {
 	Shader getSkyBasic();
+
 	Shader getSkyBasicColor();
+
 	Shader getSkyTextured();
+
 	Shader getTerrain();
 
 	Shader getTerrainCutout();
+
 	Shader getTerrainCutoutMipped();
+
 	Shader getEntitiesSolid();
+
 	Shader getEntitiesCutout();
+
 	Shader getEntitiesEyes();
+
 	Shader getLeash();
+
 	Shader getLightning();
+
 	Shader getParticles();
+
 	Shader getWeather();
+
 	Shader getCrumbling();
+
 	Shader getText();
+
 	Shader getShadowTerrainCutout();
+
 	Shader getShadowEntitiesCutout();
+
 	Shader getTranslucent();
+
 	WorldRenderingPhase getPhase();
+
 	FrameUpdateNotifier getUpdateNotifier();
+
 	void destroy();
 }

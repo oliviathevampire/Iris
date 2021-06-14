@@ -26,7 +26,8 @@ import org.jetbrains.annotations.NotNull;
  * designed to be usable without the default renderer.
  */
 public abstract class NormalHelper {
-	private NormalHelper() { }
+	private NormalHelper() {
+	}
 
 	/**
 	 * Stores a normal plus an extra value as a quartet of signed bytes.

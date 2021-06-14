@@ -12,7 +12,7 @@ import java.util.function.Function;
 
 public class PipelineManager {
 	private static PipelineManager instance;
-	private Function<DimensionId, WorldRenderingPipeline> pipelineFactory;
+	private final Function<DimensionId, WorldRenderingPipeline> pipelineFactory;
 	private WorldRenderingPipeline pipeline;
 	private DimensionId lastDimension;
 

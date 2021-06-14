@@ -1,15 +1,14 @@
 package net.coderbot.iris.gl.uniform;
 
-import java.nio.FloatBuffer;
-import java.util.function.Supplier;
-
+import net.minecraft.util.math.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL21;
 
-import net.minecraft.util.math.Matrix4f;
+import java.nio.FloatBuffer;
+import java.util.function.Supplier;
 
 public class MatrixUniform extends Uniform {
-	private FloatBuffer buffer = BufferUtils.createFloatBuffer(16);
+	private final FloatBuffer buffer = BufferUtils.createFloatBuffer(16);
 	private Matrix4f cachedValue;
 	private final Supplier<Matrix4f> value;
 

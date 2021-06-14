@@ -1,8 +1,5 @@
 package net.coderbot.iris.pipeline;
 
-import java.io.IOException;
-import java.util.*;
-
 import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -17,11 +14,7 @@ import net.coderbot.iris.postprocess.BufferFlipper;
 import net.coderbot.iris.postprocess.CenterDepthSampler;
 import net.coderbot.iris.postprocess.CompositeRenderer;
 import net.coderbot.iris.postprocess.FinalPassRenderer;
-import net.coderbot.iris.rendertarget.NativeImageBackedCustomTexture;
-import net.coderbot.iris.rendertarget.NativeImageBackedNoiseTexture;
-import net.coderbot.iris.rendertarget.NativeImageBackedSingleColorTexture;
-import net.coderbot.iris.rendertarget.RenderTarget;
-import net.coderbot.iris.rendertarget.RenderTargets;
+import net.coderbot.iris.rendertarget.*;
 import net.coderbot.iris.shaderpack.ProgramSet;
 import net.coderbot.iris.shaderpack.ProgramSource;
 import net.coderbot.iris.shadows.EmptyShadowMapRenderer;
@@ -29,22 +22,19 @@ import net.coderbot.iris.shadows.ShadowMapRenderer;
 import net.coderbot.iris.uniforms.CommonUniforms;
 import net.coderbot.iris.uniforms.FrameUpdateNotifier;
 import net.coderbot.iris.uniforms.SamplerUniforms;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.texture.AbstractTexture;
-import org.jetbrains.annotations.Nullable;
-import org.lwjgl.opengl.GL11C;
-import org.lwjgl.opengl.GL15C;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL20C;
-
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gl.GlProgramManager;
 import net.minecraft.client.particle.ParticleTextureSheet;
+import net.minecraft.client.render.Camera;
+import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
-import org.lwjgl.opengl.GL30C;
+import org.jetbrains.annotations.Nullable;
+import org.lwjgl.opengl.*;
+
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Encapsulates the compiled shader program objects for the currently loaded shaderpack.
@@ -113,7 +103,9 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 	private boolean isBeforeTranslucent;
 
 	private final int waterId;
+	private final int shadowMapResolution;
 	private final float sunPathRotation;
+	private final float shadowDistance;
 	private final boolean shouldRenderClouds;
 
 	private static final List<GbufferProgram> programStack = new ArrayList<>();
@@ -131,7 +123,9 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 
 		this.renderTargets = new RenderTargets(MinecraftClient.getInstance().getFramebuffer(), programs.getPackDirectives().getRenderTargetDirectives());
 		this.waterId = programs.getPack().getIdMap().getBlockProperties().getOrDefault(Registry.BLOCK.get(WATER_IDENTIFIER).getDefaultState(), -1);
+		this.shadowMapResolution = programs.getPackDirectives().getShadowMapResolution();
 		this.sunPathRotation = programs.getPackDirectives().getSunPathRotation();
+		this.shadowDistance = programs.getPackDirectives().getShadowDistance();
 
 		// Don't clobber anything in texture unit 0. It probably won't cause issues, but we're just being cautious here.
 		GlStateManager.glActiveTexture(GL20C.GL_TEXTURE2);
@@ -198,7 +192,7 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 
 		this.clearAltBuffers = renderTargets.createFramebufferWritingToAlt(buffersToBeCleared);
 		this.clearMainBuffers = renderTargets.createFramebufferWritingToMain(buffersToBeCleared);
-		this.baseline = renderTargets.createFramebufferWritingToMain(new int[] {0});
+		this.baseline = renderTargets.createFramebufferWritingToMain(new int[]{0});
 
 		this.usesShadows |= compositeRenderer.usesShadows();
 
@@ -336,15 +330,18 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 			if (terrain != null) {
 				setupAttributes(terrain);
 			}
-		} if (program == GbufferProgram.TERRAIN_SOLID) {
+		}
+		if (program == GbufferProgram.TERRAIN_SOLID) {
 			if (terrainSolid != null) {
 				setupAttributes(terrainSolid);
 			}
-		} if (program == GbufferProgram.TERRAIN_CUTOUT) {
+		}
+		if (program == GbufferProgram.TERRAIN_CUTOUT) {
 			if (terrainCutout != null) {
 				setupAttributes(terrainCutout);
 			}
-		} if (program == GbufferProgram.TERRAIN_CUTOUT_MIPPED) {
+		}
+		if (program == GbufferProgram.TERRAIN_CUTOUT_MIPPED) {
 			if (terrainCutoutMipped != null) {
 				setupAttributes(terrainCutoutMipped);
 			}
@@ -354,13 +351,13 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 
 				// TODO: This is just making it so that all translucent content renders like water. We need to
 				// properly support mc_Entity!
-				setupAttribute(translucent, "mc_Entity", 10, waterId, -1.0F, -1.0F, -1.0F);
+				setupAttribute(translucent, "mc_Entity", 11, waterId, -1.0F, -1.0F, -1.0F);
 			}
 		}
 
 		if (program != GbufferProgram.TRANSLUCENT_TERRAIN && pass != null && pass == translucent) {
 			// Make sure that other stuff sharing the same program isn't rendered like water
-			setupAttribute(translucent, "mc_Entity", 10, -1.0F, -1.0F, -1.0F, -1.0F);
+			setupAttribute(translucent, "mc_Entity", 11, -1.0F, -1.0F, -1.0F, -1.0F);
 		}
 	}
 
@@ -391,6 +388,16 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 		return sunPathRotation;
 	}
 
+	@Override
+	public int getShadowMapResolution() {
+		return shadowMapResolution;
+	}
+
+	@Override
+	public float getShadowDistance() {
+		return shadowDistance;
+	}
+
 	private void beginPass(Pass pass) {
 		if (pass != null) {
 			pass.use();
@@ -408,7 +415,7 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 
 		try {
 			builder = ProgramBuilder.begin(source.getName(), source.getVertexSource().orElse(null), source.getGeometrySource().orElse(null),
-				source.getFragmentSource().orElse(null));
+					source.getFragmentSource().orElse(null));
 		} catch (RuntimeException e) {
 			// TODO: Better error handling
 			throw new RuntimeException("Shader compilation failed!", e);
@@ -583,9 +590,11 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 
 		float blockId = -1.0F;
 
-		setupAttribute(pass, "mc_Entity", 10, blockId, -1.0F, -1.0F, -1.0F);
-		setupAttribute(pass, "mc_midTexCoord", 11, 0.0F, 0.0F, 0.0F, 0.0F);
-		setupAttribute(pass, "at_tangent", 12, 1.0F, 0.0F, 0.0F, 1.0F);
+		setupAttribute(pass, "mc_Entity", 11, blockId, -1.0F, -1.0F, -1.0F);
+		setupAttribute(pass, "mc_midTexCoord", 12, 0.0F, 0.0F, 0.0F, 0.0F);
+		setupAttribute(pass, "at_tangent", 13, 1.0F, 0.0F, 0.0F, 1.0F);
+		setupAttribute(pass, "at_velocity", 14, 1.0F, 0.0F, 0.0F, 1.0F);
+		setupAttribute(pass, "at_midBlock", 15, 1.0F, 0.0F, 0.0F, 1.0F);
 	}
 
 	private static void setupAttribute(Pass pass, String name, int expectedLocation, float v0, float v1, float v2, float v3) {

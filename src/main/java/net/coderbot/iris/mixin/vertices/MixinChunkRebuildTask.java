@@ -4,9 +4,7 @@ import net.coderbot.iris.Iris;
 import net.coderbot.iris.shaderpack.IdMap;
 import net.coderbot.iris.shaderpack.ShaderPack;
 import net.coderbot.iris.vertices.BlockSensitiveBufferBuilder;
-import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.block.BlockRenderManager;
@@ -16,9 +14,7 @@ import net.minecraft.client.render.chunk.ChunkOcclusionDataBuilder;
 import net.minecraft.client.render.chunk.ChunkRendererRegion;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.fluid.FluidState;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.Registry;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -32,7 +28,7 @@ import java.util.Set;
 
 /**
  * Captures and tracks the current block being rendered.
- *
+ * <p>
  * Uses a priority of 999 so that we apply before Indigo's mixins.
  */
 @Mixin(targets = "net.minecraft.client.render.chunk.ChunkBuilder$BuiltChunk$RebuildTask", priority = 999)
@@ -44,7 +40,7 @@ public class MixinChunkRebuildTask {
 
 	// Resolve the ID map on the main thread to avoid thread safety issues
 	@Unique
-	private IdMap idMap = getIdMap();
+	private final IdMap idMap = getIdMap();
 
 	@Unique
 	private IdMap getIdMap() {
