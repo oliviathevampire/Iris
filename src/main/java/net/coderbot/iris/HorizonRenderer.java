@@ -1,9 +1,8 @@
 package net.coderbot.iris;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.VertexBuffer;
 import net.minecraft.client.render.*;
-
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.Matrix4f;
 
 /**
@@ -38,7 +37,7 @@ public class HorizonRenderer {
 	 */
 	private static final double SIN_22_5 = Math.sin(Math.toRadians(22.5));
 
-	private VertexBuffer buffer;
+	private final VertexBuffer buffer;
 
 	public HorizonRenderer() {
 		buffer = new VertexBuffer();
@@ -100,8 +99,8 @@ public class HorizonRenderer {
 	}
 
 	private void buildBottomPlane(VertexConsumer consumer, int radius) {
-		for(int x = -radius; x <= radius; x += 64) {
-			for(int z = -radius; z <= radius; z += 64) {
+		for (int x = -radius; x <= radius; x += 64) {
+			for (int z = -radius; z <= radius; z += 64) {
 				consumer.vertex(x + 64, BOTTOM, z);
 				consumer.next();
 				consumer.vertex(x, BOTTOM, z);

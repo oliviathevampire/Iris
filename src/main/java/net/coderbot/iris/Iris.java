@@ -1,19 +1,27 @@
 package net.coderbot.iris;
 
-import java.io.IOException;
-import java.nio.file.*;
-import java.util.Optional;
-import java.util.zip.ZipException;
-
 import com.google.common.base.Throwables;
 import net.coderbot.iris.config.IrisConfig;
 import net.coderbot.iris.gui.screen.ShaderPackScreen;
-import net.coderbot.iris.pipeline.*;
+import net.coderbot.iris.pipeline.FixedFunctionWorldRenderingPipeline;
+import net.coderbot.iris.pipeline.PipelineManager;
+import net.coderbot.iris.pipeline.WorldRenderingPipeline;
 import net.coderbot.iris.pipeline.newshader.NewWorldRenderingPipeline;
 import net.coderbot.iris.shaderpack.DimensionId;
 import net.coderbot.iris.shaderpack.ProgramSet;
 import net.coderbot.iris.shaderpack.ShaderPack;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.text.TranslatableText;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.Level;
@@ -21,18 +29,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Formatting;
-
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.loader.api.FabricLoader;
+import java.io.IOException;
+import java.nio.file.*;
+import java.util.Optional;
+import java.util.zip.ZipException;
 
 @Environment(EnvType.CLIENT)
 public class Iris implements ClientModInitializer {
@@ -55,15 +55,15 @@ public class Iris implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		FabricLoader.getInstance().getModContainer("sodium").ifPresent(
-			modContainer -> {
-				String versionString = modContainer.getMetadata().getVersion().getFriendlyString();
+				modContainer -> {
+					String versionString = modContainer.getMetadata().getVersion().getFriendlyString();
 
-				// A lot of people are reporting visual bugs with Iris + Sodium. This makes it so that if we don't have
-				// the right fork of Sodium, it will just crash.
-				if (!versionString.startsWith("0.2.0+IRIS")) {
-					throw new IllegalStateException("You do not have a compatible version of Sodium installed! You have " + versionString + " but 0.2.0_IRIS-SNAPSHOT is expected");
+					// A lot of people are reporting visual bugs with Iris + Sodium. This makes it so that if we don't have
+					// the right fork of Sodium, it will just crash.
+					if (!versionString.startsWith("0.2.0+IRIS")) {
+						throw new IllegalStateException("You do not have a compatible version of Sodium installed! You have " + versionString + " but 0.2.0_IRIS-SNAPSHOT is expected");
+					}
 				}
-			}
 		);
 
 		try {
@@ -273,7 +273,7 @@ public class Iris implements ClientModInitializer {
 
 	private static void loadInternalShaderpack() {
 		Path root = FabricLoader.getInstance().getModContainer("iris")
-			.orElseThrow(() -> new RuntimeException("Failed to get the mod container for Iris!")).getRootPath();
+				.orElseThrow(() -> new RuntimeException("Failed to get the mod container for Iris!")).getRootPath();
 
 		try {
 			currentPack = new ShaderPack(root.resolve("shaders"));
