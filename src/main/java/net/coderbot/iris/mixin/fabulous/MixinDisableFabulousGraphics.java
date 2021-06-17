@@ -3,6 +3,7 @@ package net.coderbot.iris.mixin.fabulous;
 import net.coderbot.iris.Iris;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.GraphicsMode;
