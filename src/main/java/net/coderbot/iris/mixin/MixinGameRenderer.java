@@ -80,11 +80,11 @@ public class MixinGameRenderer {
 	private static void iris$overrideSolidShader(CallbackInfoReturnable<Shader> cir) {
 		if (ShadowRenderer.ACTIVE) {
 			// TODO: Wrong program
-			override(CoreWorldRenderingPipeline::getShadowTerrainCutout, cir);
+			override(CoreWorldRenderingPipeline::getShadowTerrainSolid, cir);
 		} else if (isPhase(WorldRenderingPhase.BLOCK_ENTITIES)) {
 			override(CoreWorldRenderingPipeline::getBlock, cir);
 		} else {
-			override(CoreWorldRenderingPipeline::getTerrainSolid, cir);
+			override(CoreWorldRenderingPipeline::getTerrain, cir);
 		}
 	}
 

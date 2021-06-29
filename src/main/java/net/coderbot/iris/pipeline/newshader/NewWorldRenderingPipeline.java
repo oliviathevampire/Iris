@@ -64,6 +64,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 	private final Shader skyBasicColor;
 	private final Shader skyTextured;
 	private final Shader skyTexturedColor;
+	private final Shader shadowTerrainSolid;
 	private final Shader shadowTerrainCutout;
 
 	private final Shader terrain;
@@ -308,11 +309,13 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 			// Fallback just in case.
 			// TODO: Can we remove this?
 			this.shadowMapRenderer = new EmptyShadowMapRenderer(programSet.getPackDirectives().getShadowDirectives().getResolution());
+			this.shadowTerrainSolid = null;
 			this.shadowTerrainCutout = null;
 			this.shadowEntitiesCutout = null;
 		} else {
 			try {
 				// TODO: Shadow programs should have access to different samplers.
+				this.shadowTerrainSolid = createShadowShader("shadow_terrain_solid", shadowSource, AlphaTest.ALWAYS, IrisVertexFormats.TERRAIN, true);
 				this.shadowTerrainCutout = createShadowShader("shadow_terrain_cutout", shadowSource, terrainCutoutAlpha, IrisVertexFormats.TERRAIN, true);
 				this.shadowEntitiesCutout = createShadowShader("shadow_entities_cutout", shadowSource, terrainCutoutAlpha, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL, true);
 			}  catch (RuntimeException e) {
@@ -353,8 +356,8 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 
 		// TODO: All samplers added here need to be mirrored in NewShaderTests. Possible way to bypass this?
 		IrisSamplers.addRenderTargetSamplers(extendedShader, flipped, renderTargets, false);
+		IrisSamplers.addWorldSamplers(extendedShader, normals, specular);
 
-		// TODO: IrisSamplers.addWorldSamplers(builder, normals, specular);
 		extendedShader.addDynamicSampler(normals::getGlId, "normals");
 		extendedShader.addDynamicSampler(specular::getGlId, "specular");
 
@@ -401,7 +404,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 		extendedShader.addIrisSampler("shadowcolor1", this.shadowMapRenderer.getColorTexture1Id());
 
 		// TODO: colortex8 to 15
-		for (int i = 0; i < 15; i++) {
+		for (int i = 0; i < RenderTargets.MAX_RENDER_TARGETS-1; i++) {
 			// TODO: This should be "alt" for programs executing after deferred.
 			extendedShader.addIrisSampler("colortex" + i, this.renderTargets.get(i).getMainTexture());
 		}
@@ -645,6 +648,11 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 	@Override
 	public Shader getEntitiesSolid() {
 		return entitiesSolid;
+	}
+
+	@Override
+	public Shader getShadowTerrainSolid() {
+		return shadowTerrainCutout;
 	}
 
 	@Override

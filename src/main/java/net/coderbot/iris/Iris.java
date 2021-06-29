@@ -52,6 +52,8 @@ public class Iris implements ClientModInitializer {
 	private static KeyBinding toggleShadersKeybind;
 	private static KeyBinding shaderpackScreenKeybind;
 
+	private static String IRIS_VERSION;
+
 	@Override
 	public void onInitializeClient() {
 		FabricLoader.getInstance().getModContainer("sodium").ifPresent(
@@ -63,6 +65,12 @@ public class Iris implements ClientModInitializer {
 					if (!versionString.startsWith("0.2.0+IRIS3")) {
 						throw new IllegalStateException("You do not have a compatible version of Sodium installed! You have " + versionString + " but 0.2.0+IRIS3 is expected");
 					}
+				}
+		);
+
+		FabricLoader.getInstance().getModContainer("iris").ifPresent(
+				modContainer -> {
+					IRIS_VERSION = modContainer.getMetadata().getVersion().getFriendlyString();
 				}
 		);
 
@@ -432,5 +440,28 @@ public class Iris implements ClientModInitializer {
 
 	public static IrisConfig getIrisConfig() {
 		return irisConfig;
+	}
+
+	public static String getVersion() {
+		if (IRIS_VERSION == null || IRIS_VERSION.contains("${version}")) {
+			return "Version info unknown!";
+		}
+
+		return IRIS_VERSION;
+	}
+
+	public static String getFormattedVersion() {
+		Formatting color;
+		String version = getVersion();
+
+		if (version.endsWith("-dirty") || version.contains("unknown")) {
+			color = Formatting.RED;
+		} else if (version.contains("+rev.")) {
+			color = Formatting.LIGHT_PURPLE;
+		} else {
+			color = Formatting.GREEN;
+		}
+
+		return color + version;
 	}
 }

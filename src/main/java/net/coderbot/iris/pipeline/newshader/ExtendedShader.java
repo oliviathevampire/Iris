@@ -5,6 +5,7 @@ import net.coderbot.iris.gl.framebuffer.GlFramebuffer;
 import net.coderbot.iris.gl.program.ProgramUniforms;
 import net.coderbot.iris.gl.sampler.SamplerHolder;
 import net.coderbot.iris.gl.uniform.LocationalUniformHolder;
+import net.coderbot.iris.gl.uniform.UniformHolder;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.GlUniform;
 import net.minecraft.client.render.Shader;
@@ -117,7 +118,12 @@ public class ExtendedShader extends Shader implements SamplerHolder {
 
 	@Override
 	public boolean addDefaultSampler(IntSupplier sampler, Runnable postBind, String... names) {
-		throw new UnsupportedOperationException("addDefaultSampler is not yet implemented");
+		if (nextUnit != 0) {
+			// TODO: Relax this restriction!
+			throw new IllegalStateException("Texture unit 0 is already used.");
+		}
+
+		return addDynamicSampler(sampler, postBind, true, names);
 	}
 
 	@Override

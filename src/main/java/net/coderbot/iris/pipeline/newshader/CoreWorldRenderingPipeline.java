@@ -41,6 +41,8 @@ public interface CoreWorldRenderingPipeline extends WorldRenderingPipeline {
 
 	Shader getBlock();
 
+	Shader getShadowTerrainSolid();
+
 	Shader getShadowTerrainCutout();
 
 	Shader getShadowEntitiesCutout();
