@@ -8,10 +8,10 @@ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 
 @Mixin({GlStateManager.class, RenderSystem.class})
 public class MixinGlStateManager {
-	private static final int MAX_TEXTURE_IMAGE_UNITS = 32;
-
 	@ModifyConstant(method = "<clinit>", constant = @Constant(intValue = 12), require = 1)
 	private static int iris$increaseMaximumAllowedTextureUnits(int existingValue) {
-		return MAX_TEXTURE_IMAGE_UNITS;
+		// should be enough, I hope...
+		// We can't query OpenGL for this since RenderSystem is initialized too early.
+		return 128;
 	}
 }

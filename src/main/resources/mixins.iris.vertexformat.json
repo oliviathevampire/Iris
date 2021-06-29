@@ -5,11 +5,14 @@
   "compatibilityLevel": "JAVA_16",
   "client": [
     "MixinBufferBuilder",
-    "MixinVertexFormatElement",
-    "MixinChunkRebuildTask",
-    "MixinVertexFormat"
+    "block_rendering.MixinChunkRebuildTask",
+    "MixinVertexFormat",
+    "MixinVertexFormatElement"
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "mixins": [
+    "block_rendering.MixinBufferBuilder_SeparateAo"
+  ]
 }

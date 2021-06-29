@@ -26,6 +26,10 @@ public interface WorldRenderingPipeline {
 
 	void finalizeWorldRendering();
 
+	void destroy();
+
+	SodiumTerrainPipeline getSodiumTerrainPipeline();
+
 	default void setPhase(WorldRenderingPhase phase) {
 		// no-op
 	}

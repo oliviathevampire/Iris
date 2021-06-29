@@ -1,9 +1,9 @@
 package net.coderbot.iris.mixin;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.coderbot.iris.HorizonRenderer;
 import net.coderbot.iris.Iris;
 import net.coderbot.iris.fantastic.FlushableVertexConsumerProvider;
-import net.coderbot.iris.pipeline.DeferredWorldRenderingPipeline;
 import net.coderbot.iris.pipeline.WorldRenderingPipeline;
 import net.coderbot.iris.pipeline.newshader.CoreWorldRenderingPipeline;
 import net.coderbot.iris.pipeline.newshader.WorldRenderingPhase;
@@ -12,7 +12,12 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.GameOptions;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.Frustum;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.render.LightmapTextureManager;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
@@ -49,11 +54,7 @@ public class MixinWorldRenderer {
 	private void iris$beginWorldRender(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo callback) {
 		CapturedRenderingState.INSTANCE.setGbufferModelView(matrices.peek().getModel());
 		CapturedRenderingState.INSTANCE.setTickDelta(tickDelta);
-		pipeline = Iris.getPipelineManager().preparePipeline(Iris.getCurrentDimension(), true);
-
-		if (pipeline instanceof DeferredWorldRenderingPipeline) {
-			((DeferredWorldRenderingPipeline) pipeline).getUpdateNotifier().onNewFrame();
-		}
+		pipeline = Iris.getPipelineManager().preparePipeline(Iris.getCurrentDimension());
 
 		if (pipeline instanceof CoreWorldRenderingPipeline) {
 			((CoreWorldRenderingPipeline) pipeline).getUpdateNotifier().onNewFrame();
@@ -109,11 +110,15 @@ public class MixinWorldRenderer {
 		}
 	}*/
 
-	@Inject(method = RENDER_SKY,
-			at = @At(value = "INVOKE", target = "net/minecraft/client/gl/VertexBuffer.setShader(Lnet/minecraft/util/math/Matrix4f;Lnet/minecraft/util/math/Matrix4f;Lnet/minecraft/client/render/Shader;)V", shift = At.Shift.AFTER),
-			slice = @Slice(to = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/SkyProperties;getFogColorOverride(FF)[F")))
-	private void iris$renderSky$drawHorizon(MatrixStack matrices, Matrix4f projectionMatrix, float tickDelta, Runnable runnable, CallbackInfo callback) {
+	@Inject(method = RENDER_SKY, at = @At(value = "INVOKE", target = "net/minecraft/client/render/BackgroundRenderer.setFogBlack()V"))
+	private void iris$renderSky$drawHorizon(MatrixStack matrices, Matrix4f projectionMatrix, float f, Runnable runnable, CallbackInfo callback) {
+		RenderSystem.depthMask(false);
+
+		Vec3d fogColor = CapturedRenderingState.INSTANCE.getFogColor();
+		RenderSystem.setShaderColor((float) fogColor.x, (float) fogColor.y, (float) fogColor.z, 1.0F);
 		new HorizonRenderer().renderHorizon(matrices.peek().getModel().copy(), projectionMatrix.copy(), GameRenderer.getPositionShader());
+
+		RenderSystem.depthMask(true);
 	}
 
 	@Inject(method = RENDER_SKY, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/world/ClientWorld;getSkyAngle(F)F"),
@@ -238,5 +243,19 @@ public class MixinWorldRenderer {
 
 		profiler.swap("iris_pre_translucent");
 		pipeline.beginTranslucents();
+	}
+
+	@Inject(method = RENDER, at = @At(value = "CONSTANT", args = "stringValue=blockentities"))
+	private void iris$startBlockEntities(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline,
+	                                     Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager,
+	                                     Matrix4f matrix4f, CallbackInfo ci) {
+		pipeline.setPhase(WorldRenderingPhase.BLOCK_ENTITIES);
+	}
+
+	@Inject(method = RENDER, at = @At(value = "CONSTANT", args = "stringValue=destroyProgress"))
+	private void iris$endBlockEntities(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline,
+	                                   Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager,
+	                                   Matrix4f matrix4f, CallbackInfo ci) {
+		pipeline.setPhase(WorldRenderingPhase.OTHER);
 	}
 }

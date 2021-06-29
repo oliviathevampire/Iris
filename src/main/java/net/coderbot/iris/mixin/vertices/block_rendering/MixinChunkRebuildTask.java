@@ -1,8 +1,7 @@
-package net.coderbot.iris.mixin.vertices;
+package net.coderbot.iris.mixin.vertices.block_rendering;
 
-import net.coderbot.iris.Iris;
+import net.coderbot.iris.block_rendering.BlockRenderingSettings;
 import net.coderbot.iris.shaderpack.IdMap;
-import net.coderbot.iris.shaderpack.ShaderPack;
 import net.coderbot.iris.vertices.BlockSensitiveBufferBuilder;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.BufferBuilder;
@@ -44,13 +43,7 @@ public class MixinChunkRebuildTask {
 
 	@Unique
 	private IdMap getIdMap() {
-		ShaderPack pack = Iris.getCurrentPack().orElse(null);
-
-		if (pack == null) {
-			return null;
-		}
-
-		return pack.getIdMap();
+		return BlockRenderingSettings.INSTANCE.getIdMap();
 	}
 
 	@Unique

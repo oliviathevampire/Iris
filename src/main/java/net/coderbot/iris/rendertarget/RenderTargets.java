@@ -1,10 +1,13 @@
 package net.coderbot.iris.rendertarget;
 
 import com.google.common.collect.ImmutableSet;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.coderbot.iris.Iris;
 import net.coderbot.iris.gl.framebuffer.GlFramebuffer;
 import net.coderbot.iris.shaderpack.PackRenderTargetDirectives;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
+import org.lwjgl.opengl.GL20C;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,7 +18,7 @@ public class RenderTargets {
 	/**
 	 * The maximum number of render targets supported by Iris.
 	 */
-	public static int MAX_RENDER_TARGETS = 8;
+	public static int MAX_RENDER_TARGETS = 16;
 
 	private final RenderTarget[] targets;
 	private final DepthTexture depthTexture;
@@ -48,6 +51,21 @@ public class RenderTargets {
 		this.cachedHeight = height;
 
 		this.ownedFramebuffers = new ArrayList<>();
+
+		// NB: Make sure all buffers are cleared so that they don't contain undefined
+		// data. Otherwise very weird things can happen.
+		//
+		// TODO: Make this respect the clear color of each buffer, destroy these framebuffers afterwards.
+		RenderSystem.clearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+		createFramebufferWritingToMain(new int[] {0,1,2,3,4,5,6,7}).bind();
+		RenderSystem.clear(GL20C.GL_COLOR_BUFFER_BIT, false);
+
+		createFramebufferWritingToAlt(new int[] {0,1,2,3,4,5,6,7}).bind();
+		RenderSystem.clear(GL20C.GL_COLOR_BUFFER_BIT, false);
+
+		// Make sure to rebind the vanilla framebuffer.
+		MinecraftClient.getInstance().getFramebuffer().beginWrite(false);
 	}
 
 	public void destroy() {

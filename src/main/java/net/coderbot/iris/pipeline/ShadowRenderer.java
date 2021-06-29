@@ -1,6 +1,7 @@
 package net.coderbot.iris.pipeline;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.coderbot.iris.Iris;
@@ -12,9 +13,10 @@ import net.coderbot.iris.gl.texture.InternalTextureFormat;
 import net.coderbot.iris.layer.GbufferProgram;
 import net.coderbot.iris.mixin.WorldRendererAccessor;
 import net.coderbot.iris.mixin.shadows.ChunkInfoAccessor;
+import net.coderbot.iris.rendertarget.RenderTargets;
+import net.coderbot.iris.samplers.IrisSamplers;
 import net.coderbot.iris.shaderpack.PackDirectives;
 import net.coderbot.iris.shaderpack.PackShadowDirectives;
-import net.coderbot.iris.shaderpack.ProgramDirectives;
 import net.coderbot.iris.shaderpack.ProgramSource;
 import net.coderbot.iris.shadow.ShadowMatrices;
 import net.coderbot.iris.shadows.CullingDataCache;
@@ -22,15 +24,23 @@ import net.coderbot.iris.shadows.Matrix4fAccess;
 import net.coderbot.iris.shadows.ShadowMapRenderer;
 import net.coderbot.iris.shadows.ShadowRenderTargets;
 import net.coderbot.iris.shadows.frustum.ShadowFrustum;
-import net.coderbot.iris.uniforms.*;
+import net.coderbot.iris.uniforms.CameraUniforms;
+import net.coderbot.iris.uniforms.CapturedRenderingState;
+import net.coderbot.iris.uniforms.CelestialUniforms;
+import net.coderbot.iris.uniforms.CommonUniforms;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.BufferBuilderStorage;
+import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.Frustum;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
+import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
@@ -43,6 +53,7 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 public class ShadowRenderer implements ShadowMapRenderer {
 	private final float halfPlaneLength;
@@ -55,11 +66,16 @@ public class ShadowRenderer implements ShadowMapRenderer {
 	private final WorldRenderingPipeline pipeline;
 	private final ShadowRenderTargets targets;
 
-	//private final Program shadowProgram;
+	private final Program shadowProgram;
 	private final float sunPathRotation;
 
 	private final BufferBuilderStorage buffers;
 	private final ExtendedBufferStorage extendedBufferStorage;
+
+	private final RenderTargets gbufferRenderTargets;
+	private final AbstractTexture normals;
+	private final AbstractTexture specular;
+	private final AbstractTexture noise;
 
 	public static boolean ACTIVE = false;
 	public static String OVERALL_DEBUG_STRING = "(unavailable)";
@@ -67,7 +83,9 @@ public class ShadowRenderer implements ShadowMapRenderer {
 	private static int renderedShadowEntities = 0;
 	private static int renderedShadowBlockEntities = 0;
 
-	public ShadowRenderer(WorldRenderingPipeline pipeline, ProgramSource shadow, PackDirectives directives) {
+	public ShadowRenderer(WorldRenderingPipeline pipeline, ProgramSource shadow, PackDirectives directives,
+	                      Supplier<ImmutableSet<Integer>> flipped, RenderTargets gbufferRenderTargets,
+	                      AbstractTexture normals, AbstractTexture specular, AbstractTexture noise) {
 		this.pipeline = pipeline;
 
 		final PackShadowDirectives shadowDirectives = directives.getShadowDirectives();
@@ -89,11 +107,16 @@ public class ShadowRenderer implements ShadowMapRenderer {
 				InternalTextureFormat.RGBA
 		});
 
-		/*if (shadow != null) {
-			this.shadowProgram = createProgram(shadow, directives).getLeft();
+		this.gbufferRenderTargets = gbufferRenderTargets;
+		this.normals = normals;
+		this.specular = specular;
+		this.noise = noise;
+
+		if (shadow != null) {
+			this.shadowProgram = createProgram(shadow, directives, flipped);
 		} else {
 			this.shadowProgram = null;
-		}*/
+		}
 
 		this.sunPathRotation = directives.getSunPathRotation();
 
@@ -145,7 +168,8 @@ public class ShadowRenderer implements ShadowMapRenderer {
 	}
 
 	// TODO: Don't just copy this from ShaderPipeline
-	private Pair<Program, ProgramDirectives> createProgram(ProgramSource source, PackDirectives directives) {
+	private Program createProgram(ProgramSource source, PackDirectives directives,
+	                              Supplier<ImmutableSet<Integer>> flipped) {
 		// TODO: Properly handle empty shaders
 		Objects.requireNonNull(source.getVertexSource());
 		Objects.requireNonNull(source.getFragmentSource());
@@ -153,16 +177,19 @@ public class ShadowRenderer implements ShadowMapRenderer {
 
 		try {
 			builder = ProgramBuilder.begin(source.getName(), source.getVertexSource().orElse(null), source.getGeometrySource().orElse(null),
-					source.getFragmentSource().orElse(null));
+					source.getFragmentSource().orElse(null), IrisSamplers.WORLD_RESERVED_TEXTURE_UNITS);
 		} catch (RuntimeException e) {
 			// TODO: Better error handling
 			throw new RuntimeException("Shader compilation failed!", e);
 		}
 
 		CommonUniforms.addCommonUniforms(builder, source.getParent().getPack().getIdMap(), directives, ((DeferredWorldRenderingPipeline) pipeline).getUpdateNotifier());
-		SamplerUniforms.addWorldSamplerUniforms(builder);
+		IrisSamplers.addRenderTargetSamplers(builder, flipped, gbufferRenderTargets, false);
+		IrisSamplers.addWorldSamplers(builder, normals, specular);
+		IrisSamplers.addNoiseSampler(builder, noise);
+		IrisSamplers.addShadowSamplers(builder, this);
 
-		return new Pair<>(builder.build(), source.getDirectives());
+		return builder.build();
 	}
 
 	private static void setupAttributes(Program program) {
@@ -176,6 +203,7 @@ public class ShadowRenderer implements ShadowMapRenderer {
 		setupAttribute(program, "at_tangent", 13, 1.0F, 0.0F, 0.0F, 1.0F);
 		setupAttribute(program, "at_velocity", 14, 1.0F, 0.0F, 0.0F, 1.0F);
 		setupAttribute(program, "at_midBlock", 15, 1.0F, 0.0F, 0.0F, 1.0F);
+		RenderSystem.bindTexture(0);
 	}
 
 	private static void setupAttribute(Program program, String name, int expectedLocation, float v0, float v1, float v2, float v3) {

@@ -69,13 +69,22 @@ public class MixinGameRenderer {
 		}
 	}
 
+	@Inject(method = "getPositionTexColorShader()Lnet/minecraft/client/render/Shader;", at = @At("HEAD"), cancellable = true)
+	private static void iris$overridePositionTexColorShader(CallbackInfoReturnable<Shader> cir) {
+		if (isPhase(WorldRenderingPhase.SKY)) {
+			override(CoreWorldRenderingPipeline::getSkyTexturedColor, cir);
+		}
+	}
+
 	@Inject(method = "getRenderTypeSolidShader()Lnet/minecraft/client/render/Shader;", at = @At("HEAD"), cancellable = true)
 	private static void iris$overrideSolidShader(CallbackInfoReturnable<Shader> cir) {
 		if (ShadowRenderer.ACTIVE) {
 			// TODO: Wrong program
 			override(CoreWorldRenderingPipeline::getShadowTerrainCutout, cir);
+		} else if (isPhase(WorldRenderingPhase.BLOCK_ENTITIES)) {
+			override(CoreWorldRenderingPipeline::getBlock, cir);
 		} else {
-			override(CoreWorldRenderingPipeline::getTerrain, cir);
+			override(CoreWorldRenderingPipeline::getTerrainSolid, cir);
 		}
 	}
 
@@ -93,6 +102,8 @@ public class MixinGameRenderer {
 		if (ShadowRenderer.ACTIVE) {
 			// TODO: Wrong program
 			override(CoreWorldRenderingPipeline::getShadowTerrainCutout, cir);
+		} else if (isPhase(WorldRenderingPhase.BLOCK_ENTITIES)) {
+			override(CoreWorldRenderingPipeline::getBlock, cir);
 		} else {
 			override(CoreWorldRenderingPipeline::getTerrainCutoutMipped, cir);
 		}
@@ -219,6 +230,16 @@ public class MixinGameRenderer {
 	private static void iris$overrideTextShader(CallbackInfoReturnable<Shader> cir) {
 		if (isRenderingWorld() && !ShadowRenderer.ACTIVE) {
 			override(CoreWorldRenderingPipeline::getText, cir);
+		}
+	}
+
+	@Inject(method = {
+		"getRenderTypeEndGatewayShader",
+		"getRenderTypeEndPortalShader"
+	}, at = @At("HEAD"), cancellable = true)
+	private static void iris$overrideEndPortalShader(CallbackInfoReturnable<Shader> cir) {
+		if(!ShadowRenderer.ACTIVE) {
+			override(CoreWorldRenderingPipeline::getBlock, cir);
 		}
 	}
 

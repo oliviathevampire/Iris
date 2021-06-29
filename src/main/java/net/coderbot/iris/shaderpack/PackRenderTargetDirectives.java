@@ -28,7 +28,7 @@ public class PackRenderTargetDirectives {
 	);
 
 	// TODO: Support 16 render targets instead of just 8, we need other changes elsewhere first.
-	public static final Set<Integer> BASELINE_SUPPORTED_RENDER_TARGETS = ImmutableSet.of(0, 1, 2, 3, 4, 5, 6, 7);
+	public static final Set<Integer> BASELINE_SUPPORTED_RENDER_TARGETS = ImmutableSet.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
 
 	private final Int2ObjectMap<RenderTargetSettings> renderTargetSettings;
 

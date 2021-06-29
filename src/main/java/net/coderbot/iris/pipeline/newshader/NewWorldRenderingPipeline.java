@@ -4,12 +4,15 @@ import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.coderbot.iris.Iris;
+import net.coderbot.iris.block_rendering.BlockRenderingSettings;
 import net.coderbot.iris.gl.blending.AlphaTest;
 import net.coderbot.iris.gl.blending.AlphaTestFunction;
 import net.coderbot.iris.gl.framebuffer.GlFramebuffer;
+import net.coderbot.iris.gl.program.ProgramSamplers;
 import net.coderbot.iris.layer.GbufferProgram;
 import net.coderbot.iris.mixin.WorldRendererAccessor;
 import net.coderbot.iris.pipeline.ShadowRenderer;
+import net.coderbot.iris.pipeline.SodiumTerrainPipeline;
 import net.coderbot.iris.pipeline.WorldRenderingPipeline;
 import net.coderbot.iris.postprocess.BufferFlipper;
 import net.coderbot.iris.postprocess.CenterDepthSampler;
@@ -19,6 +22,7 @@ import net.coderbot.iris.rendertarget.NativeImageBackedCustomTexture;
 import net.coderbot.iris.rendertarget.NativeImageBackedNoiseTexture;
 import net.coderbot.iris.rendertarget.NativeImageBackedSingleColorTexture;
 import net.coderbot.iris.rendertarget.RenderTargets;
+import net.coderbot.iris.samplers.IrisSamplers;
 import net.coderbot.iris.shaderpack.ProgramSet;
 import net.coderbot.iris.shaderpack.ProgramSource;
 import net.coderbot.iris.shadows.EmptyShadowMapRenderer;
@@ -28,7 +32,11 @@ import net.coderbot.iris.vertices.IrisVertexFormats;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.render.Shader;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
@@ -44,6 +52,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.IntFunction;
+import java.util.function.Supplier;
 
 public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWorldRenderingPipeline {
 	private boolean destroyed = false;
@@ -53,6 +63,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 	private final Shader skyBasic;
 	private final Shader skyBasicColor;
 	private final Shader skyTextured;
+	private final Shader skyTexturedColor;
 	private final Shader shadowTerrainCutout;
 
 	private final Shader terrain;
@@ -72,6 +83,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 	private final Shader text;
 	private final Shader hand;
 	private final Shader handWater;
+	private final Shader block;
 
 	private final Shader terrainTranslucent;
 	private WorldRenderingPhase phase = WorldRenderingPhase.NOT_RENDERING_WORLD;
@@ -82,7 +94,8 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 	private final GlFramebuffer clearMainBuffers;
 	private final GlFramebuffer baseline;
 
-	private final ShadowRenderer shadowMapRenderer;
+	private Runnable createShadowMapRenderer;
+	private ShadowMapRenderer shadowMapRenderer;
 	private final CompositeRenderer deferredRenderer;
 	private final CompositeRenderer compositeRenderer;
 	private final FinalPassRenderer finalPassRenderer;
@@ -91,6 +104,8 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 	private final AbstractTexture noise;
 	private final FrameUpdateNotifier updateNotifier;
 	private final CenterDepthSampler centerDepthSampler;
+
+	private final SodiumTerrainPipeline sodiumTerrainPipeline;
 
 	private final ImmutableSet<Integer> flippedBeforeTranslucent;
 	private final ImmutableSet<Integer> flippedAfterTranslucent;
@@ -151,20 +166,70 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 
 		GlStateManager._activeTexture(GL20C.GL_TEXTURE0);
 
+		// TODO: Change this once earlier passes are implemented.
+		ImmutableSet<Integer> flippedBeforeTerrain = ImmutableSet.of();
+
+		createShadowMapRenderer = () -> {
+			shadowMapRenderer = new ShadowRenderer(this, programSet.getShadow().orElse(null),
+				programSet.getPackDirectives(), () -> flippedBeforeTerrain, renderTargets, normals, specular, noise);
+			createShadowMapRenderer = () -> {};
+		};
+
 		BufferFlipper flipper = new BufferFlipper();
 
 		this.centerDepthSampler = new CenterDepthSampler(renderTargets, updateNotifier);
 
 		flippedBeforeTranslucent = flipper.snapshot();
 
+		Supplier<ShadowMapRenderer> shadowMapRendererSupplier = () -> {
+			createShadowMapRenderer.run();
+			return shadowMapRenderer;
+		};
+
 		this.deferredRenderer = new CompositeRenderer(programSet.getPackDirectives(), programSet.getDeferred(), renderTargets,
-				noise, updateNotifier, centerDepthSampler, flipper);
+			noise, updateNotifier, centerDepthSampler, flipper, shadowMapRendererSupplier);
 
 		flippedAfterTranslucent = flipper.snapshot();
 
 		this.compositeRenderer = new CompositeRenderer(programSet.getPackDirectives(), programSet.getComposite(), renderTargets,
-				noise, updateNotifier, centerDepthSampler, flipper);
-		this.finalPassRenderer = new FinalPassRenderer(programSet, renderTargets, noise, updateNotifier, flipper.snapshot(), centerDepthSampler);
+			noise, updateNotifier, centerDepthSampler, flipper, shadowMapRendererSupplier);
+		this.finalPassRenderer = new FinalPassRenderer(programSet, renderTargets, noise, updateNotifier, flipper.snapshot(),
+			centerDepthSampler, shadowMapRendererSupplier);
+
+		Supplier<ImmutableSet<Integer>> flipped =
+			() -> isBeforeTranslucent ? flippedBeforeTranslucent : flippedAfterTranslucent;
+
+		IntFunction<ProgramSamplers> createTerrainSamplers = (programId) -> {
+			ProgramSamplers.Builder builder = ProgramSamplers.builder(programId, IrisSamplers.WORLD_RESERVED_TEXTURE_UNITS);
+
+			IrisSamplers.addRenderTargetSamplers(builder, flipped, renderTargets, false);
+			IrisSamplers.addWorldSamplers(builder, normals, specular);
+			IrisSamplers.addWorldDepthSamplers(builder, renderTargets);
+			IrisSamplers.addNoiseSampler(builder, noise);
+
+			if (IrisSamplers.hasShadowSamplers(builder)) {
+				createShadowMapRenderer.run();
+				IrisSamplers.addShadowSamplers(builder, shadowMapRenderer);
+			}
+
+			return builder.build();
+		};
+
+		IntFunction<ProgramSamplers> createShadowTerrainSamplers = (programId) -> {
+			ProgramSamplers.Builder builder = ProgramSamplers.builder(programId, IrisSamplers.WORLD_RESERVED_TEXTURE_UNITS);
+
+			IrisSamplers.addRenderTargetSamplers(builder, () -> flippedBeforeTerrain, renderTargets, false);
+			IrisSamplers.addWorldSamplers(builder, normals, specular);
+			IrisSamplers.addNoiseSampler(builder, noise);
+
+			// Only initialize these samplers if the shadow map renderer exists.
+			// Otherwise, this program shouldn't be used at all?
+			if (IrisSamplers.hasShadowSamplers(builder) && shadowMapRenderer != null) {
+				IrisSamplers.addShadowSamplers(builder, shadowMapRenderer);
+			}
+
+			return builder.build();
+		};
 
 		Optional<ProgramSource> basicSource = programSet.getGbuffersBasic();
 
@@ -181,15 +246,14 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 		Optional<ProgramSource> handSource = first(programSet.getGbuffersHand(), programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured(), programSet.getGbuffersBasic());
 		Optional<ProgramSource> handWaterSource = first(programSet.getGbuffersHandWater(), programSet.getGbuffersHand(), programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured());
 		Optional<ProgramSource> shadowSource = programSet.getShadow();
+		Optional<ProgramSource> blockSource = programSet.getGbuffersBlock();
 
 		Optional<ProgramSource> entitiesSource = first(programSet.getGbuffersEntities(), programSet.getGbuffersTexturedLit(), programSet.getGbuffersTextured(), programSet.getGbuffersBasic());
 		Optional<ProgramSource> entityEyesSource = first(programSet.getGbuffersEntityEyes(), programSet.getGbuffersTextured(), programSet.getGbuffersBasic());
 
 		Optional<ProgramSource> damagedBlockSource = first(programSet.getGbuffersDamagedBlock(), terrainSource);
 
-		this.shadowMapRenderer = new ShadowRenderer(this, programSet.getShadow().orElse(null), programSet.getPackDirectives());
-
-		this.baseline = renderTargets.createFramebufferWritingToMain(new int[]{0});
+		this.baseline = renderTargets.createFramebufferWritingToMain(new int[] {0});
 
 		// Matches OptiFine's default for CUTOUT and CUTOUT_MIPPED.
 		AlphaTest terrainCutoutAlpha = new AlphaTest(AlphaTestFunction.GREATER, 0.1F);
@@ -202,6 +266,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 			this.skyBasic = createShader("gbuffers_sky_basic", skyBasicSource, AlphaTest.ALWAYS, VertexFormats.POSITION, false);
 			this.skyBasicColor = createShader("gbuffers_sky_basic_color", skyBasicSource, AlphaTest.ALWAYS, VertexFormats.POSITION_COLOR, true);
 			this.skyTextured = createShader("gbuffers_sky_textured", skyTexturedSource, AlphaTest.ALWAYS, VertexFormats.POSITION_TEXTURE, false);
+			this.skyTexturedColor = createShader("gbuffers_sky_textured_tex_color", skyTexturedSource, AlphaTest.ALWAYS, VertexFormats.POSITION_TEXTURE_COLOR, true);
 			this.terrain = createShader("gbuffers_terrain", terrainSource, AlphaTest.ALWAYS, IrisVertexFormats.TERRAIN, true);
 			this.terrainSolid = createShader("gbuffers_terrain_solid", terrainSolidSource, AlphaTest.ALWAYS, IrisVertexFormats.TERRAIN, true);
 			this.terrainCutout = createShader("gbuffers_terrain_cutout", terrainCutoutSource, terrainCutoutAlpha, IrisVertexFormats.TERRAIN, true);
@@ -213,14 +278,11 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 			this.leash = createShader("gbuffers_leash", basicSource, AlphaTest.ALWAYS, VertexFormats.POSITION_COLOR_LIGHT, true);
 			this.particles = createShader("gbuffers_particles", particleSource, terrainCutoutAlpha, VertexFormats.POSITION_TEXTURE_COLOR_LIGHT, true);
 			this.weather = createShader("gbuffers_weather", weatherSource, terrainCutoutAlpha, VertexFormats.POSITION_TEXTURE_COLOR_LIGHT, true);
-			this.crumbling = createShader("gbuffers_damagedblock", damagedBlockSource, nonZeroAlpha, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL, true);
+			this.crumbling = createShader("gbuffers_damagedblock", damagedBlockSource, terrainCutoutAlpha, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL, true);
 			this.text = createShader("gbuffers_entities_text", entitiesSource, nonZeroAlpha, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT, true);
+			this.block = createShader("gbuffers_block", blockSource, terrainCutoutAlpha, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL, true);
 			this.hand = createShader("gbuffers_hand", handSource, nonZeroAlpha, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT, true);
 			this.handWater = createShader("gbuffers_hand_water", handSource, nonZeroAlpha, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT, true);
-
-			// TODO: Shadow programs should have access to different samplers.
-			this.shadowTerrainCutout = createShadowShader("shadow_terrain_cutout", shadowSource, terrainCutoutAlpha, IrisVertexFormats.TERRAIN, true);
-			this.shadowEntitiesCutout = createShadowShader("shadow_entities_cutout", shadowSource, terrainCutoutAlpha, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL, true);
 
 			if (translucentSource != terrainSource) {
 				this.terrainTranslucent = createShader("gbuffers_translucent", translucentSource, AlphaTest.ALWAYS, IrisVertexFormats.TERRAIN, true);
@@ -233,10 +295,34 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 			throw e;
 		}
 
+		BlockRenderingSettings.INSTANCE.setIdMap(programSet.getPack().getIdMap());
+		BlockRenderingSettings.INSTANCE.setDisableDirectionalShading(shouldDisableDirectionalShading());
+		BlockRenderingSettings.INSTANCE.setUseSeparateAo(programSet.getPackDirectives().shouldUseSeparateAo());
+
 		int[] buffersToBeCleared = programSet.getPackDirectives().getRenderTargetDirectives().getBuffersToBeCleared().toIntArray();
 
 		this.clearAltBuffers = renderTargets.createFramebufferWritingToAlt(buffersToBeCleared);
 		this.clearMainBuffers = renderTargets.createFramebufferWritingToMain(buffersToBeCleared);
+
+		if (shadowMapRenderer == null) {
+			// Fallback just in case.
+			// TODO: Can we remove this?
+			this.shadowMapRenderer = new EmptyShadowMapRenderer(programSet.getPackDirectives().getShadowDirectives().getResolution());
+			this.shadowTerrainCutout = null;
+			this.shadowEntitiesCutout = null;
+		} else {
+			try {
+				// TODO: Shadow programs should have access to different samplers.
+				this.shadowTerrainCutout = createShadowShader("shadow_terrain_cutout", shadowSource, terrainCutoutAlpha, IrisVertexFormats.TERRAIN, true);
+				this.shadowEntitiesCutout = createShadowShader("shadow_entities_cutout", shadowSource, terrainCutoutAlpha, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL, true);
+			}  catch (RuntimeException e) {
+				destroyShaders();
+
+				throw e;
+			}
+		}
+
+		this.sodiumTerrainPipeline = new SodiumTerrainPipeline(programSet, createTerrainSamplers, createShadowTerrainSamplers);
 	}
 
 	@Nullable
@@ -258,42 +344,26 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 
 		// TODO: waterShadowEnabled?
 
-		extendedShader.addIrisSampler("normals", this.normals.getGlId());
-		extendedShader.addIrisSampler("specular", this.specular.getGlId());
-		extendedShader.addIrisSampler("shadow", this.shadowMapRenderer.getDepthTextureId());
-		extendedShader.addIrisSampler("watershadow", this.shadowMapRenderer.getDepthTextureId());
-		extendedShader.addIrisSampler("shadowtex0", this.shadowMapRenderer.getDepthTextureId());
-		extendedShader.addIrisSampler("shadowtex1", this.shadowMapRenderer.getDepthTextureNoTranslucentsId());
-		extendedShader.addIrisSampler("depthtex0", this.renderTargets.getDepthTexture().getTextureId());
-		extendedShader.addIrisSampler("depthtex1", this.renderTargets.getDepthTextureNoTranslucents().getTextureId());
-		extendedShader.addIrisSampler("noisetex", this.noise.getGlId());
-		extendedShader.addIrisSampler("shadowcolor", this.shadowMapRenderer.getColorTexture0Id());
-		extendedShader.addIrisSampler("shadowcolor0", this.shadowMapRenderer.getColorTexture0Id());
-		extendedShader.addIrisSampler("shadowcolor1", this.shadowMapRenderer.getColorTexture1Id());
+		// TODO: initialize shadowMapRenderer as needed, finish refactor!!!!
+		// TODO: Don't render shadows if they aren't used by the pack.
+		// TODO: Pay close attention, should try to unify stuff too.
 
-		// TODO: Shadowcolor
+		Supplier<ImmutableSet<Integer>> flipped =
+			() -> isBeforeTranslucent ? flippedBeforeTranslucent : flippedAfterTranslucent;
 
-		// TODO: colortex8 to 15
-		// TODO: We shouldn't be making these available but whatever
-		for (int i = 0; i < 8; i++) {
-			final int finalI = i;
+		// TODO: All samplers added here need to be mirrored in NewShaderTests. Possible way to bypass this?
+		IrisSamplers.addRenderTargetSamplers(extendedShader, flipped, renderTargets, false);
 
-			extendedShader.addIrisSampler("colortex" + i, () -> {
-				boolean flipped = (isBeforeTranslucent ? flippedBeforeTranslucent : flippedAfterTranslucent).contains(finalI);
+		// TODO: IrisSamplers.addWorldSamplers(builder, normals, specular);
+		extendedShader.addDynamicSampler(normals::getGlId, "normals");
+		extendedShader.addDynamicSampler(specular::getGlId, "specular");
 
-				return flipped ? this.renderTargets.get(finalI).getAltTexture() : this.renderTargets.get(finalI).getMainTexture();
-			});
-		}
+		IrisSamplers.addWorldDepthSamplers(extendedShader, renderTargets);
+		IrisSamplers.addNoiseSampler(extendedShader, noise);
 
-		for (int i = 1; i <= 4; i++) {
-			final int finalI = i + 3;
-
-			// gaux1 -> colortex4, gaux2 -> colortex5, gaux3 -> colortex6, gaux4 -> colortex7
-			extendedShader.addIrisSampler("gaux" + i, () -> {
-				boolean flipped = (isBeforeTranslucent ? flippedBeforeTranslucent : flippedAfterTranslucent).contains(finalI);
-
-				return flipped ? this.renderTargets.get(finalI).getAltTexture() : this.renderTargets.get(finalI).getMainTexture();
-			});
+		if (IrisSamplers.hasShadowSamplers(extendedShader)) {
+			createShadowMapRenderer.run();
+			IrisSamplers.addShadowSamplers(extendedShader, shadowMapRenderer);
 		}
 
 		return extendedShader;
@@ -308,7 +378,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 	}
 
 	private Shader createShadowShader(String name, ProgramSource source, AlphaTest fallbackAlpha, VertexFormat vertexFormat, boolean hasColorAttrib) throws IOException {
-		GlFramebuffer framebuffer = this.shadowMapRenderer.getFramebuffer();
+		GlFramebuffer framebuffer = ((ShadowRenderer) this.shadowMapRenderer).getFramebuffer();
 
 		ExtendedShader extendedShader = NewShaderTests.create(name, source, framebuffer, framebuffer, baseline, fallbackAlpha, vertexFormat, updateNotifier, this);
 
@@ -331,7 +401,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 		extendedShader.addIrisSampler("shadowcolor1", this.shadowMapRenderer.getColorTexture1Id());
 
 		// TODO: colortex8 to 15
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < 15; i++) {
 			// TODO: This should be "alt" for programs executing after deferred.
 			extendedShader.addIrisSampler("colortex" + i, this.renderTargets.get(i).getMainTexture());
 		}
@@ -392,6 +462,8 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 		main.beginWrite(true);
 
 		isBeforeTranslucent = true;
+
+		updateNotifier.onNewFrame();
 	}
 
 	@Override
@@ -442,7 +514,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 		GL20C.glCopyTexImage2D(GL20C.GL_TEXTURE_2D, 0, GL20C.GL_DEPTH_COMPONENT, 0, 0, renderTargets.getCurrentWidth(), renderTargets.getCurrentHeight(), 0);
 		GlStateManager._bindTexture(0);
 
-		deferredRenderer.renderAll(shadowMapRenderer);
+		deferredRenderer.renderAll();
 
 		RenderSystem.enableBlend();
 
@@ -465,8 +537,8 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 
 	@Override
 	public void finalizeWorldRendering() {
-		compositeRenderer.renderAll(shadowMapRenderer);
-		finalPassRenderer.renderFinalPass(shadowMapRenderer);
+		compositeRenderer.renderAll();
+		finalPassRenderer.renderFinalPass();
 		phase = WorldRenderingPhase.NOT_RENDERING_WORLD;
 	}
 
@@ -501,7 +573,17 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 	}
 
 	@Override
+	public Shader getSkyTexturedColor() {
+		return skyTexturedColor;
+	}
+
+	@Override
 	public Shader getTerrain() {
+		return terrain;
+	}
+
+	@Override
+	public Shader getTerrainSolid() {
 		return terrainSolid;
 	}
 
@@ -553,6 +635,11 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 	@Override
 	public Shader getText() {
 		return text;
+	}
+
+	@Override
+	public Shader getBlock() {
+		return block;
 	}
 
 	@Override
@@ -625,6 +712,11 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 
 		shadowMapRenderer.destroy();
 		renderTargets.destroy();
+	}
+
+	@Override
+	public SodiumTerrainPipeline getSodiumTerrainPipeline() {
+		return sodiumTerrainPipeline;
 	}
 
 	@Override

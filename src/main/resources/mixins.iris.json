@@ -6,7 +6,7 @@
   "compatibilityLevel": "JAVA_16",
   "client": [
     "MixinBackgroundRenderer",
-    "MixinBakedQuad",
+    "vertices.block_rendering.MixinBakedQuad",
     "MixinDebugHud",
     "MixinEntityRenderDispatcher",
     "MixinGameRenderer",
