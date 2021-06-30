@@ -98,15 +98,9 @@ public class ProgramUniforms {
 		@Override
 		public Builder addUniform(UniformUpdateFrequency updateFrequency, Uniform uniform) {
 			switch (updateFrequency) {
-				case ONCE:
-					once.put(locations.get(uniform.getLocation()), uniform);
-					break;
-				case PER_TICK:
-					perTick.put(locations.get(uniform.getLocation()), uniform);
-					break;
-				case PER_FRAME:
-					perFrame.put(locations.get(uniform.getLocation()), uniform);
-					break;
+				case ONCE -> once.put(locations.get(uniform.getLocation()), uniform);
+				case PER_TICK -> perTick.put(locations.get(uniform.getLocation()), uniform);
+				case PER_FRAME -> perFrame.put(locations.get(uniform.getLocation()), uniform);
 			}
 
 			return this;

@@ -199,11 +199,14 @@ public class ShadowRenderer implements ShadowMapRenderer {
 
 		float blockId = -1.0F;
 
-		setupAttribute(program, "mc_Entity", 11, blockId, -1.0F, -1.0F, -1.0F);
-		setupAttribute(program, "mc_midTexCoord", 12, 0.0F, 0.0F, 0.0F, 0.0F);
-		setupAttribute(program, "at_tangent", 13, 1.0F, 0.0F, 0.0F, 1.0F);
-		setupAttribute(program, "at_velocity", 14, 1.0F, 0.0F, 0.0F, 1.0F);
-		setupAttribute(program, "at_midBlock", 15, 1.0F, 0.0F, 0.0F, 1.0F);
+//		setupAttribute(program, "mc_Entity", 11, blockId, -1.0F, -1.0F, -1.0F);
+//		setupAttribute(program, "mc_midTexCoord", 12, 0.0F, 0.0F, 0.0F, 0.0F);
+//		setupAttribute(program, "at_tangent", 13, 1.0F, 0.0F, 0.0F, 1.0F);
+		setupAttribute(program, "mc_Entity", 10, blockId, -1.0F, -1.0F, -1.0F);
+		setupAttribute(program, "mc_midTexCoord", 11, 0.0F, 0.0F, 0.0F, 0.0F);
+		setupAttribute(program, "at_tangent", 12, 1.0F, 0.0F, 0.0F, 1.0F);
+//		setupAttribute(program, "at_velocity", 14, 1.0F, 0.0F, 0.0F, 1.0F);
+//		setupAttribute(program, "at_midBlock", 15, 1.0F, 0.0F, 0.0F, 1.0F);
 		RenderSystem.bindTexture(0);
 	}
 

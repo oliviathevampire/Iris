@@ -27,6 +27,7 @@ import net.coderbot.iris.shaderpack.ProgramSet;
 import net.coderbot.iris.shaderpack.ProgramSource;
 import net.coderbot.iris.shadows.EmptyShadowMapRenderer;
 import net.coderbot.iris.shadows.ShadowMapRenderer;
+import net.coderbot.iris.texunits.TextureUnit;
 import net.coderbot.iris.uniforms.FrameUpdateNotifier;
 import net.coderbot.iris.vertices.IrisVertexFormats;
 import net.fabricmc.loader.api.FabricLoader;
@@ -100,8 +101,8 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 	private final CompositeRenderer deferredRenderer;
 	private final CompositeRenderer compositeRenderer;
 	private final FinalPassRenderer finalPassRenderer;
-	private final NativeImageBackedSingleColorTexture normals;
-	private final NativeImageBackedSingleColorTexture specular;
+	private final AbstractTexture normals;
+	private final AbstractTexture specular;
 	private final AbstractTexture noise;
 	private final FrameUpdateNotifier updateNotifier;
 	private final CenterDepthSampler centerDepthSampler;
@@ -149,6 +150,34 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 		// Create some placeholder PBR textures for now
 		normals = new NativeImageBackedSingleColorTexture(127, 127, 255, 255);
 		specular = new NativeImageBackedSingleColorTexture(0, 0, 0, 0);
+		/*normals = programSet.getPack().getCustomNormalsTexture().flatMap(texture -> {
+			try {
+				AbstractTexture customNoiseTexture = new NativeImageBackedCustomTexture(texture);
+
+				return Optional.of(customNoiseTexture);
+			} catch (IOException e) {
+				Iris.logger.error("Unable to parse the image data for the custom normals texture", e);
+				return Optional.empty();
+			}
+		}).orElseGet(() -> {
+			final int noiseTextureResolution = programSet.getPackDirectives().getNoiseTextureResolution();
+
+			return new NativeImageBackedNoiseTexture(noiseTextureResolution);
+		});
+		specular = programSet.getPack().getCustomSpecularTexture().flatMap(texture -> {
+			try {
+				AbstractTexture customNoiseTexture = new NativeImageBackedCustomTexture(texture);
+
+				return Optional.of(customNoiseTexture);
+			} catch (IOException e) {
+				Iris.logger.error("Unable to parse the image data for the custom specular texture", e);
+				return Optional.empty();
+			}
+		}).orElseGet(() -> {
+			final int noiseTextureResolution = programSet.getPackDirectives().getNoiseTextureResolution();
+
+			return new NativeImageBackedNoiseTexture(noiseTextureResolution);
+		});*/
 
 		noise = programSet.getPack().getCustomNoiseTexture().flatMap(texture -> {
 			try {
@@ -221,6 +250,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 
 			IrisSamplers.addRenderTargetSamplers(builder, () -> flippedBeforeTerrain, renderTargets, false);
 			IrisSamplers.addWorldSamplers(builder, normals, specular);
+			IrisSamplers.addWorldDepthSamplers(builder, renderTargets);
 			IrisSamplers.addNoiseSampler(builder, noise);
 
 			// Only initialize these samplers if the shadow map renderer exists.
@@ -356,10 +386,19 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 
 		// TODO: All samplers added here need to be mirrored in NewShaderTests. Possible way to bypass this?
 		IrisSamplers.addRenderTargetSamplers(extendedShader, flipped, renderTargets, false);
-		IrisSamplers.addWorldSamplers(extendedShader, normals, specular);
+//		IrisSamplers.addWorldSamplers(extendedShader, normals, specular);
 
-		extendedShader.addDynamicSampler(normals::getGlId, "normals");
-		extendedShader.addDynamicSampler(specular::getGlId, "specular");
+		extendedShader.addIrisSampler("tex", TextureUnit.TERRAIN::getSamplerId);
+		extendedShader.addIrisSampler("texture", TextureUnit.TERRAIN::getSamplerId);
+		extendedShader.addIrisSampler("lightmap", TextureUnit.LIGHTMAP::getSamplerId);
+		extendedShader.addIrisSampler("normals", 2);
+		extendedShader.addIrisSampler("specular", 3);
+
+//		extendedShader.addDynamicSampler(TextureUnit.TERRAIN::getSamplerId, "tex");
+//		extendedShader.addDynamicSampler(TextureUnit.TERRAIN::getSamplerId, "texture");
+//		extendedShader.addDynamicSampler(TextureUnit.TERRAIN::getSamplerId, "lightmap");
+//		extendedShader.addDynamicSampler(normals::getGlId, "normals");
+//		extendedShader.addDynamicSampler(specular::getGlId, "specular");
 
 		IrisSamplers.addWorldDepthSamplers(extendedShader, renderTargets);
 		IrisSamplers.addNoiseSampler(extendedShader, noise);
@@ -404,7 +443,7 @@ public class NewWorldRenderingPipeline implements WorldRenderingPipeline, CoreWo
 		extendedShader.addIrisSampler("shadowcolor1", this.shadowMapRenderer.getColorTexture1Id());
 
 		// TODO: colortex8 to 15
-		for (int i = 0; i < RenderTargets.MAX_RENDER_TARGETS-1; i++) {
+		for (int i = 0; i < RenderTargets.MAX_RENDER_TARGETS; i++) {
 			// TODO: This should be "alt" for programs executing after deferred.
 			extendedShader.addIrisSampler("colortex" + i, this.renderTargets.get(i).getMainTexture());
 		}

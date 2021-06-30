@@ -17,11 +17,15 @@ import org.apache.logging.log4j.Level;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
 
 /**
  * A utility class for parsing entries in item.properties, block.properties, and entities.properties files in shaderpacks
@@ -100,7 +104,7 @@ public class IdMap {
 
 	private static String readProperties(Path shaderPath, String name) {
 		try {
-			return new String(Files.readAllBytes(shaderPath.resolve(name)), StandardCharsets.UTF_8);
+			return Files.readString(shaderPath.resolve(name));
 		} catch (NoSuchFileException e) {
 			Iris.logger.debug("An " + name + " file was not found in the current shaderpack");
 

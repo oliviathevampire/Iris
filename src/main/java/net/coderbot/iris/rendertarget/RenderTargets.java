@@ -18,7 +18,7 @@ public class RenderTargets {
 	/**
 	 * The maximum number of render targets supported by Iris.
 	 */
-	public static int MAX_RENDER_TARGETS = 16;
+	public static int MAX_RENDER_TARGETS = /*16*/8;
 
 	private final RenderTarget[] targets;
 	private final DepthTexture depthTexture;

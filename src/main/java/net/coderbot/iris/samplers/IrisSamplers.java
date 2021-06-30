@@ -116,16 +116,19 @@ public class IrisSamplers {
 	}
 
 	public static void addWorldDepthSamplers(SamplerHolder samplers, RenderTargets renderTargets) {
-		samplers.addDynamicSampler(renderTargets.getDepthTexture()::getTextureId, "depthtex0");
+		samplers.addDynamicSampler(() -> 6, "depthtex0");
 		// TODO: Should depthtex2 be made available to gbuffer / shadow programs?
-		samplers.addDynamicSampler(renderTargets.getDepthTextureNoTranslucents()::getTextureId, "depthtex1");
+		samplers.addDynamicSampler(() -> 11, "depthtex1");
+		samplers.addDynamicSampler(() -> 12, "depthtex2");
 	}
 
 	public static void addCompositeSamplers(SamplerHolder samplers, RenderTargets renderTargets) {
-		samplers.addDynamicSampler(renderTargets.getDepthTexture()::getTextureId,
+		samplers.addDynamicSampler(() -> 6,
 				"gdepthtex", "depthtex0");
 		// TODO: "no translucents, no hand" depth texture when in-world hand rendering is implemented.
-		samplers.addDynamicSampler(renderTargets.getDepthTextureNoTranslucents()::getTextureId,
-				"depthtex1", "depthtex2");
+		samplers.addDynamicSampler(() -> 11,
+				"depthtex1");
+		samplers.addDynamicSampler(() -> 12,
+			"depthtex2");
 	}
 }

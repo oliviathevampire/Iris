@@ -5,7 +5,6 @@ import net.coderbot.iris.gl.framebuffer.GlFramebuffer;
 import net.coderbot.iris.gl.program.ProgramUniforms;
 import net.coderbot.iris.gl.sampler.SamplerHolder;
 import net.coderbot.iris.gl.uniform.LocationalUniformHolder;
-import net.coderbot.iris.gl.uniform.UniformHolder;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.GlUniform;
 import net.minecraft.client.render.Shader;
@@ -15,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL20C;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.function.Consumer;
 import java.util.function.IntSupplier;
@@ -108,7 +108,7 @@ public class ExtendedShader extends Shader implements SamplerHolder {
 	// TODO: This is kind of a mess. The interface might need some cleanup here.
 	@Override
 	public void addExternalSampler(int textureUnit, String... names) {
-		throw new UnsupportedOperationException("not yet implemented");
+		throw new UnsupportedOperationException("not yet implemented: " + Arrays.toString(names));
 	}
 
 	@Override
@@ -118,17 +118,12 @@ public class ExtendedShader extends Shader implements SamplerHolder {
 
 	@Override
 	public boolean addDefaultSampler(IntSupplier sampler, Runnable postBind, String... names) {
-		if (nextUnit != 0) {
-			// TODO: Relax this restriction!
-			throw new IllegalStateException("Texture unit 0 is already used.");
-		}
-
-		return addDynamicSampler(sampler, postBind, true, names);
+		throw new UnsupportedOperationException("addDefaultSampler is not yet implemented: " + Arrays.toString(names));
 	}
 
 	@Override
 	public boolean addDynamicSampler(IntSupplier sampler, Runnable postBind, String... names) {
-		throw new UnsupportedOperationException("postBind isn't supported.");
+		throw new UnsupportedOperationException("postBind isn't supported: " + Arrays.toString(names));
 	}
 
 	@Override

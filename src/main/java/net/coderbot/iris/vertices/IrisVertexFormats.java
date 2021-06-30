@@ -9,17 +9,20 @@ public class IrisVertexFormats {
 	public static final VertexFormatElement ENTITY_ELEMENT;
 	public static final VertexFormatElement MID_TEXTURE_ELEMENT;
 	public static final VertexFormatElement TANGENT_ELEMENT;
-	public static final VertexFormatElement VELOCITY_ELEMENT;
-	public static final VertexFormatElement MID_BLOCK_ELEMENT;
+//	public static final VertexFormatElement VELOCITY_ELEMENT;
+//	public static final VertexFormatElement MID_BLOCK_ELEMENT;
 
 	public static final VertexFormat TERRAIN;
 
 	static {
-		ENTITY_ELEMENT = new VertexFormatElement(11, VertexFormatElement.DataType.FLOAT, VertexFormatElement.Type.GENERIC, 4);
-		MID_TEXTURE_ELEMENT = new VertexFormatElement(12, VertexFormatElement.DataType.FLOAT, VertexFormatElement.Type.GENERIC, 2);
-		TANGENT_ELEMENT = new VertexFormatElement(13, VertexFormatElement.DataType.FLOAT, VertexFormatElement.Type.GENERIC, 4);
-		VELOCITY_ELEMENT = new VertexFormatElement(14, VertexFormatElement.DataType.FLOAT, VertexFormatElement.Type.GENERIC, 4);
-		MID_BLOCK_ELEMENT = new VertexFormatElement(15, VertexFormatElement.DataType.FLOAT, VertexFormatElement.Type.GENERIC, 4);
+//		ENTITY_ELEMENT = new VertexFormatElement(11, VertexFormatElement.DataType.FLOAT, VertexFormatElement.Type.GENERIC, 4);
+//		MID_TEXTURE_ELEMENT = new VertexFormatElement(12, VertexFormatElement.DataType.FLOAT, VertexFormatElement.Type.GENERIC, 2);
+//		TANGENT_ELEMENT = new VertexFormatElement(13, VertexFormatElement.DataType.FLOAT, VertexFormatElement.Type.GENERIC, 4);
+//		VELOCITY_ELEMENT = new VertexFormatElement(14, VertexFormatElement.DataType.FLOAT, VertexFormatElement.Type.GENERIC, 4);
+//		MID_BLOCK_ELEMENT = new VertexFormatElement(15, VertexFormatElement.DataType.FLOAT, VertexFormatElement.Type.GENERIC, 4);
+		ENTITY_ELEMENT = new VertexFormatElement(10, VertexFormatElement.DataType.FLOAT, VertexFormatElement.Type.GENERIC, 4);
+		MID_TEXTURE_ELEMENT = new VertexFormatElement(11, VertexFormatElement.DataType.FLOAT, VertexFormatElement.Type.GENERIC, 2);
+		TANGENT_ELEMENT = new VertexFormatElement(12, VertexFormatElement.DataType.FLOAT, VertexFormatElement.Type.GENERIC, 4);
 
 		ImmutableMap.Builder<String, VertexFormatElement> elements = ImmutableMap.builder();
 
@@ -33,8 +36,8 @@ public class IrisVertexFormats {
 		elements.put("mc_Entity", ENTITY_ELEMENT);
 		elements.put("mc_midTexCoord", MID_TEXTURE_ELEMENT);
 		elements.put("at_tangent", TANGENT_ELEMENT);
-		elements.put("at_velocity", VELOCITY_ELEMENT);
-		elements.put("at_midBlock", MID_BLOCK_ELEMENT);
+//		elements.put("at_velocity", VELOCITY_ELEMENT);
+//		elements.put("at_midBlock", MID_BLOCK_ELEMENT);
 
 		TERRAIN = new VertexFormat(elements.build());
 	}

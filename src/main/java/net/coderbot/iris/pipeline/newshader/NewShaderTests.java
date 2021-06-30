@@ -6,6 +6,7 @@ import net.coderbot.iris.gl.shader.ShaderType;
 import net.coderbot.iris.shaderpack.ProgramSource;
 import net.coderbot.iris.uniforms.CommonUniforms;
 import net.coderbot.iris.uniforms.FrameUpdateNotifier;
+import net.coderbot.iris.uniforms.SamplerUniforms;
 import net.coderbot.iris.uniforms.builtin.BuiltinReplacementUniforms;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.render.VertexFormat;
@@ -100,23 +101,14 @@ public class NewShaderTests {
 
 		return new ExtendedShader(shaderResourceFactory, name, vertexFormat, writingToBeforeTranslucent, writingToAfterTranslucent, baseline, uniforms -> {
 			CommonUniforms.addCommonUniforms(uniforms, source.getParent().getPack().getIdMap(), source.getParent().getPackDirectives(), updateNotifier);
-			//SamplerUniforms.addWorldSamplerUniforms(uniforms);
-			//SamplerUniforms.addDepthSamplerUniforms(uniforms);
+			SamplerUniforms.addCommonSamplerUniforms(uniforms);
+			SamplerUniforms.addWorldSamplerUniforms(uniforms);
+			SamplerUniforms.addDepthSamplerUniforms(uniforms);
 			BuiltinReplacementUniforms.addBuiltinReplacementUniforms(uniforms);
 		}, parent);
 	}
 
-	private static class IrisProgramResourceFactory implements ResourceFactory {
-		private final String json;
-		private final String vertex;
-		private final String fragment;
-
-		public IrisProgramResourceFactory(String json, String vertex, String fragment) {
-			this.json = json;
-			this.vertex = vertex;
-			this.fragment = fragment;
-		}
-
+	private record IrisProgramResourceFactory(String json, String vertex, String fragment) implements ResourceFactory {
 		@Override
 		public Resource getResource(Identifier id) throws IOException {
 			final String path = id.getPath();
@@ -133,15 +125,7 @@ public class NewShaderTests {
 		}
 	}
 
-	private static class StringResource implements Resource {
-		private final Identifier id;
-		private final String content;
-
-		private StringResource(Identifier id, String content) {
-			this.id = id;
-			this.content = content;
-		}
-
+	private record StringResource(Identifier id, String content) implements Resource {
 		@Override
 		public Identifier getId() {
 			return id;
@@ -168,7 +152,7 @@ public class NewShaderTests {
 		}
 
 		@Override
-		public void close() throws IOException {
+		public void close() {
 			// No resources to release
 		}
 	}

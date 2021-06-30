@@ -46,6 +46,8 @@ public class ShaderProperties {
 	private final Object2FloatMap<String> viewportScaleOverrides = new Object2FloatOpenHashMap<>();
 	private final ObjectSet<String> blendDisabled = new ObjectOpenHashSet<>();
 	private String noiseTexturePath = null;
+	private String normalsTexturePath = null;
+	private String specularTexturePath = null;
 
 	private ShaderProperties() {
 		// empty
@@ -58,6 +60,14 @@ public class ShaderProperties {
 
 			if ("texture.noise".equals(key)) {
 				noiseTexturePath = value;
+			}
+
+			if (value.contains("_n")) {
+				normalsTexturePath = value;
+			}
+
+			if (value.contains("_s")) {
+				normalsTexturePath = value;
 			}
 
 			if ("clouds".equals(key) && value.equals("off")) {
@@ -284,6 +294,14 @@ public class ShaderProperties {
 
 	public Optional<String> getNoiseTexturePath() {
 		return Optional.ofNullable(noiseTexturePath);
+	}
+
+	public Optional<String> getNormalsTexturePath() {
+		return Optional.ofNullable(normalsTexturePath);
+	}
+
+	public Optional<String> getSpecularTexturePath() {
+		return Optional.ofNullable(specularTexturePath);
 	}
 
 	public OptionalInt getAoLevel() {

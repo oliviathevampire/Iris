@@ -19,6 +19,8 @@ public class ShaderPack {
 	private final IdMap idMap;
 	private final Map<String, Map<String, String>> langMap;
 	private final CustomTexture customNoiseTexture;
+	private final CustomTexture customNormalsTexture;
+	private final CustomTexture customSpecularTexture;
 	private boolean usingUnimplementedFeatures = false;
 	private final ShaderPackConfig config;
 	private final ShaderProperties shaderProperties;
@@ -47,6 +49,34 @@ public class ShaderPack {
 				return new CustomTexture(content, true, false);
 			} catch (IOException e) {
 				Iris.logger.error("Unable to read the custom noise texture at " + path);
+
+				return null;
+			}
+		}).orElse(null);
+
+		customNormalsTexture = shaderProperties.getNormalsTexturePath().map(path -> {
+			try {
+				// TODO: Make sure the resulting path is within the shaderpack?
+				byte[] content = Files.readAllBytes(root.resolve(path));
+
+				// TODO: Read the blur / clamp data from the shaderpack...
+				return new CustomTexture(content, true, false);
+			} catch (IOException e) {
+				Iris.logger.error("Unable to read the custom normals texture at " + path);
+
+				return null;
+			}
+		}).orElse(null);
+
+		customSpecularTexture = shaderProperties.getSpecularTexturePath().map(path -> {
+			try {
+				// TODO: Make sure the resulting path is within the shaderpack?
+				byte[] content = Files.readAllBytes(root.resolve(path));
+
+				// TODO: Read the blur / clamp data from the shaderpack...
+				return new CustomTexture(content, true, false);
+			} catch (IOException e) {
+				Iris.logger.error("Unable to read the custom specular texture at " + path);
 
 				return null;
 			}
@@ -106,6 +136,14 @@ public class ShaderPack {
 
 	public Optional<CustomTexture> getCustomNoiseTexture() {
 		return Optional.ofNullable(customNoiseTexture);
+	}
+
+	public Optional<CustomTexture> getCustomNormalsTexture() {
+		return Optional.ofNullable(customNormalsTexture);
+	}
+
+	public Optional<CustomTexture> getCustomSpecularTexture() {
+		return Optional.ofNullable(customSpecularTexture);
 	}
 
 	public Map<String, Map<String, String>> getLangMap() {

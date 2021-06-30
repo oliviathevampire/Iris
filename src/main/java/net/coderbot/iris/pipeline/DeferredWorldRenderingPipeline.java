@@ -427,13 +427,15 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 
 				// TODO: This is just making it so that all translucent content renders like water. We need to
 				// properly support mc_Entity!
-				setupAttribute(translucent, "mc_Entity", 11, waterId, -1.0F, -1.0F, -1.0F);
+//				setupAttribute(translucent, "mc_Entity", 11, waterId, -1.0F, -1.0F, -1.0F);
+				setupAttribute(translucent, "mc_Entity", 10, waterId, -1.0F, -1.0F, -1.0F);
 			}
 		}
 
 		if (program != GbufferProgram.TRANSLUCENT_TERRAIN && pass != null && pass == translucent) {
 			// Make sure that other stuff sharing the same program isn't rendered like water
-			setupAttribute(translucent, "mc_Entity", 11, -1.0F, -1.0F, -1.0F, -1.0F);
+//			setupAttribute(translucent, "mc_Entity", 11, -1.0F, -1.0F, -1.0F, -1.0F);
+			setupAttribute(translucent, "mc_Entity", 10, -1.0F, -1.0F, -1.0F, -1.0F);
 		}
 	}
 
@@ -639,11 +641,14 @@ public class DeferredWorldRenderingPipeline implements WorldRenderingPipeline {
 
 		float blockId = -1.0F;
 
-		setupAttribute(pass, "mc_Entity", 11, blockId, -1.0F, -1.0F, -1.0F);
-		setupAttribute(pass, "mc_midTexCoord", 12, 0.0F, 0.0F, 0.0F, 0.0F);
-		setupAttribute(pass, "at_tangent", 13, 1.0F, 0.0F, 0.0F, 1.0F);
-		setupAttribute(pass, "at_velocity", 14, 1.0F, 0.0F, 0.0F, 1.0F);
-		setupAttribute(pass, "at_midBlock", 15, 1.0F, 0.0F, 0.0F, 1.0F);
+//		setupAttribute(pass, "mc_Entity", 11, blockId, -1.0F, -1.0F, -1.0F);
+//		setupAttribute(pass, "mc_midTexCoord", 12, 0.0F, 0.0F, 0.0F, 0.0F);
+//		setupAttribute(pass, "at_tangent", 13, 1.0F, 0.0F, 0.0F, 1.0F);
+		setupAttribute(pass, "mc_Entity", 10, blockId, -1.0F, -1.0F, -1.0F);
+		setupAttribute(pass, "mc_midTexCoord", 11, 0.0F, 0.0F, 0.0F, 0.0F);
+		setupAttribute(pass, "at_tangent", 12, 1.0F, 0.0F, 0.0F, 1.0F);
+//		setupAttribute(pass, "at_velocity", 14, 1.0F, 0.0F, 0.0F, 1.0F);
+//		setupAttribute(pass, "at_midBlock", 15, 1.0F, 0.0F, 0.0F, 1.0F);
 	}
 
 	private static void setupAttribute(Pass pass, String name, int expectedLocation, float v0, float v1, float v2, float v3) {
