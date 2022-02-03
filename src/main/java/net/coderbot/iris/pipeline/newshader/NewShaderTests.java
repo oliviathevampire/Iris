@@ -119,7 +119,7 @@ public class NewShaderTests {
 
 			Files.write(debugOutDir.resolve(name + ".vsh"), vertex.getBytes(StandardCharsets.UTF_8));
 			Files.write(debugOutDir.resolve(name + ".fsh"), fragment.getBytes(StandardCharsets.UTF_8));
-			if (geometry != null) {
+			if (source.getGeometrySource().isPresent() && geometry != null) {
 				Files.write(debugOutDir.resolve(name + ".gsh"), geometry.getBytes(StandardCharsets.UTF_8));
 			}
 			Files.write(debugOutDir.resolve(name + ".json"), shaderJsonString.getBytes(StandardCharsets.UTF_8));
